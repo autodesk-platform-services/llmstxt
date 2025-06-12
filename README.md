@@ -12,7 +12,7 @@ Vibe coding is the new way of working in AI-assisted IDEs. You don’t start wit
 
 > Each step includes a short video (30 seconds) to help you follow along.
 
-### ▶️ Step 1: Set Up Your Environment
+### ▶️ Step 1: Add LLMS.TXT to CursorAI
 - Open Cursor IDE
 - Go to 'Settings' -> "Indexing & Docs" and click "Add Doc"
 - Type in `https://aps.autodesk.com/llms-full.txt` and add the name `Autodesk APS APIs` and click `Confirm`
@@ -24,7 +24,9 @@ Vibe coding is the new way of working in AI-assisted IDEs. You don’t start wit
 ---
 
 ### ▶️ Step 2: Test It Out
-- Try asking Cursor:  
+- Point Cursor AI to our `Autodesk APS APIs` using the @Docs feature
+- Select 'Ask'
+- Now try asking:  
   _“Can you see the APS docs?  what is SSA ?”_
 
 <video src="https://github.com/user-attachments/assets/321bb801-b8b6-466d-a028-8d6f5be38109"></video>
@@ -38,17 +40,4 @@ Vibe coding is the new way of working in AI-assisted IDEs. You don’t start wit
 
 ---
 
-## 🧩 Install `llms-full.txt` in Cursor IDE
-
-Adding APS docs to Cursor lets the AI understand Autodesk Platform Services deeply, including:
-
-- OAuth 2.0 (2LO, 3LO, SSA)
-- Hubs, Projects, Folders, Versions
-- Model Derivative, Data Management, ACC APIs
-- REST + GraphQL references
-
-### ✅ One-time Setup
-
-1. Open Cursor IDE
-2. Press `Cmd+K` → choose `@docs: Add`
-3. Paste this URL:
+That's a wrap!
