@@ -1,6 +1,7 @@
 # 🚀 Getting Started with APS's LLMS.TXT and Cursor IDE
 
-Welcome! This guide is for developers, citizen developers, and domain experts who want to **vibe code** Autodesk Platform Services (APS) APIs using the AI-powered [Cursor IDE](https://www.cursor.so/). With just a few steps, you’ll be setup to generate and test real API code using plain-English prompts—powered by APS + OpenAI + `llms.txt`.
+Welcome! This is the repo for the APS `llms.txt` file(s).  
+It is also a short guide for developers, citizen developers, and domain experts who want to **vibe code** Autodesk Platform Services (APS) APIs using the AI-powered [Cursor IDE](https://www.cursor.so/). With just a few steps, you’ll be setup to generate and test real API code using plain-English prompts—powered by APS + CursorAI + `llms.txt`.
 
 ## 🧠 What’s “Vibe Coding”?
 
@@ -14,7 +15,7 @@ Vibe coding is the new way of working in AI-assisted IDEs. You don’t start wit
 
 ### ▶️ Step 1: Add LLMS.TXT to CursorAI
 - Open Cursor IDE
-- Go to 'Settings' -> "Indexing & Docs" and click "Add Doc"
+- Go to 'Settings' -> `Indexing & Docs` and click `Add Doc`
 - Type in `https://aps.autodesk.com/llms-full.txt` and add the name `Autodesk APS APIs` and click `Confirm`
 
 <video src="https://github.com/user-attachments/assets/0bbb7b67-f305-4619-b898-2263bb5b28bb"></video>
@@ -33,10 +34,36 @@ Vibe coding is the new way of working in AI-assisted IDEs. You don’t start wit
 
 ---
 
-### ▶️ Step 3: Switch to Agent mode and build a "List Hubs" Example (Python)
-- Use prompt-driven coding to build a MVP `ssa_hubs.py` example  
+### ▶️ Step 3a: Vibe Code - View a Revit model in a browser.  (Python)
+- Use prompt-driven coding to build a command line tool, that let's you upload and view a Revit model in a browser using APS.  We'll use python to do the file upload, Model Derivative API to convert RVT to SVF2, and use the Viewer SDK inside our custom webpage. Let's call it `upload-and-view.py` example.
+- Switch to Agent mode
+- Try asking:
+_“create a python cli tool script, use APS rest calls and ignore error checking and comments.  create an 'upload' command and a 'host' command.  first, Upload a .rvt (or .nwd, .dwg, etc) file to APS (a bucket) using APS key/secret from a .env file (APS_CLIENT_ID, APS_CLIENT_SECRET, APS_BUCKET_DEFAULT), next convert it to SVF2 using model derivative API and return the URN and access token.  Second command, host a viewer.html webpage, where a browser will use viewer sdk to load that URN and pull a fresh 2legged (2LO) access token from this host server.”_
+  
+```
+Video to come
+```
 
-<a href="https://public-blogs.s3.us-west-2.amazonaws.com/step3-get-list-of-hubs-with-agent.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/7012de00-a352-449c-beff-0655521cddef" /></a>
+### ▶️ Step 3b: Vibe Code - Switch to Agent mode and build a "List Hubs" Example (Python)
+- Use prompt-driven coding to "list all my hubs from a simple command line tool" - using Python.
+- Switch to Agent mode.
+- Now try asking:
+_“create a python script that uses ssa, gets an access token using ssa rest apis and uses an example.env file containing aps key/secret, private key, scope, etc and lists the acc hubs. ignore error checking and no comments.”_
+
+`The end result ?`  I run the command `python3 list_hubs.py` and it shows the hubs my robot (SSA) has access to using 3LO access tokens.
+
+ps.  Here is my `example.env' file I used in the video.  I asked Cursor to use these variable names, instead of the ones it initially suggested:
+
+```
+APS_CLIENT_ID=XLA....................................0ep3i
+APS_CLIENT_SECRET=RCB...................................................84e
+SERVICE_ACCOUNT_ID=VR2........V5
+KEY_ID=288........8322d
+APS_SCOPE="data:read data:write"
+APS_PRIVATE_KEY="--- ....................... 6FsPjyf\n-----END RSA PRIVATE KEY-----"
+```
+
+<a href="https://public-blogs.s3.us-west-2.amazonaws.com/step3-get-list-of-hubs.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/7012de00-a352-449c-beff-0655521cddef" /></a>
 
 ---
 
