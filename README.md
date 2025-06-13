@@ -34,17 +34,8 @@ Vibe coding is the new way of working in AI-assisted IDEs. You don’t start wit
 
 ---
 
-### ▶️ Step 3a: Vibe Code - View a Revit model in a browser.  (Python)
-- Use prompt-driven coding to build a command line tool, that let's you upload and view a Revit model in a browser using APS.  We'll use python to do the file upload, Model Derivative API to convert RVT to SVF2, and use the Viewer SDK inside our custom webpage. Let's call it `upload-and-view.py` example.
-- Switch to Agent mode
-- Try asking:
-_“create a python cli tool script, use APS rest calls and ignore error checking and comments.  create an 'upload' command and a 'host' command.  first, Upload a .rvt (or .nwd, .dwg, etc) file to APS (a bucket) using APS key/secret from a .env file (APS_CLIENT_ID, APS_CLIENT_SECRET, APS_BUCKET_DEFAULT), next convert it to SVF2 using model derivative API and return the URN and access token.  Second command, host a viewer.html webpage, where a browser will use viewer sdk to load that URN and pull a fresh 2legged (2LO) access token from this host server.”_
-  
-```
-Video to come
-```
 
-### ▶️ Step 3b: Vibe Code - Switch to Agent mode and build a "List Hubs" Example (Python)
+### ▶️ Step 3: Build a "List Hubs" Example (Python)
 - Use prompt-driven coding to "list all my hubs from a simple command line tool" - using Python.
 - Switch to Agent mode.
 - Now try asking:
@@ -67,4 +58,16 @@ APS_PRIVATE_KEY="--- ....................... 6FsPjyf\n-----END RSA PRIVATE KEY--
 
 ---
 
+### ▶️ Step 4: Vibe Code - View a Revit model in a browser.  (Python)
+- Use prompt-driven coding to build a command line tool, that let's you upload and view a Revit model in a browser using APS.  We'll use python to do the file upload, Model Derivative API to convert RVT to SVF2, and use the Viewer SDK inside our custom webpage. Let's call it `upload-and-view.py` example.
+- Switch to Agent mode
+- Try asking:
+_“create a python cli tool script, use APS rest calls and ignore error checking and comments.  create an 'upload' command and a 'host' command.  first, Upload a .rvt (or .nwd, .dwg, etc) file to APS (a bucket) using APS key/secret from a .env file (APS_CLIENT_ID, APS_CLIENT_SECRET, APS_BUCKET_DEFAULT), next convert it to SVF2 using model derivative API and return the URN and access token.  Second command, host a viewer.html webpage, where a browser will use viewer sdk to load that URN and pull a fresh 2legged (2LO) access token from this host server.”_
+  
+```
+Video to come
+```
+
+
+---
 That's a wrap!
