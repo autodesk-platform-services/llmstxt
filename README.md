@@ -7,6 +7,11 @@ It is also a short guide for developers, citizen developers, and domain experts 
 
 Vibe coding is the new way of working in AI-assisted IDEs. You don’t start with a blank file. You **talk to your editor**, describe what you want, and let it scaffold, correct, and enhance your code. It's part code generation, part pair programming, and 100% about speed, flow, and creativity.
 
+> 💡 New to Cursor or vibe coding?
+> Don’t worry if this feels unfamiliar—part of the magic is letting the AI help you work through it. Think of Cursor as your coding partner. Start by describing what you want, and let it guide you. You’ll be surprised how far you can get with just a good prompt.
+> .
+
+
 ---
 
 ## 🎥 3-Step Intro: Watch & Learn
