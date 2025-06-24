@@ -1,0 +1,894 @@
+openapi: 3.0.1
+x-stoplight:
+  id: a5p3h5029y9kz
+info:
+  title: Authentication
+  description: OAuth2 token management APIs.
+  contact:
+    name: Autodesk Plaform Services
+    email: aps.help@autodesk.com
+    url: 'https://aps.autodesk.com/'
+  version: '2.0'
+  termsOfService: 'https://www.autodesk.com/company/legal-notices-trademarks/terms-of-service-autodesk360-web-services/forge-platform-web-services-api-terms-of-service'
+servers:
+  - url: 'https://developer.api.autodesk.com'
+paths:
+  /authentication/v2/authorize:
+    get:
+      summary: Authorize User
+      description: |-
+        Returns a browser URL to redirect an end user in order to acquire the user’s consent to authorize the application to access resources on their behalf.
+
+        Invoking this operation is the first step in authenticating users and retrieving an authorization code grant. The authorization code that is generated remains valid for 5 minutes, while the ID token stays valid for 60 minutes. Any access tokens you obtain are valid for 60 minutes, and refresh tokens remain valid for 15 days.
+
+        This operation has a rate limit of 500 calls per minute.
+
+        **Note:** This operation is intended for use with client-side applications only. It is not suitable for server-side applications.
+      operationId: authorize
+      parameters:
+        - name: client_id
+          in: query
+          description: 'The Client ID of the calling application, as registered with APS.'
+          required: true
+          schema:
+            type: string
+        - name: response_type
+          in: query
+          description: |
+            The type of response you want to receive. Possible values are: 
+
+            -  ``code`` - Authorization code grant.
+            -  ``id_token`` - OpenID Connect ID token.
+          schema:
+            $ref: '#/components/schemas/responseType'
+          required: true
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |
+            The URI that APS redirects users to after they grant or deny access permission to the application. Must match the Callback URL for the application as registered with APS.
+
+            Must be specified as a URL-safe string. It can include query parameters or any other valid URL construct.
+        - name: nonce
+          in: query
+          description: A random string that is sent with the request. APS passes back the same string to you so that you can verify whether you received the same string that you sent. This check mitigates token replay attacks
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: |
+            A URL-encoded random string. The authorization flow will pass the same string back to the Callback URL using the ``state`` query string parameter. This process helps ensure that the callback you receive is a response to what you originally requested. It prevents malicious actors from forging requests.
+
+            The string can only contain alphanumeric characters, commas, periods, underscores, and hyphens.            
+          schema:
+            type: string
+        - name: scope
+          in: query
+          description: |-
+            A URL-encoded space-delimited list of requested scopes. See the `Developer's Guide documentation on scopes </en/docs/oauth/v2/developers_guide/scopes/>`_ for a list of valid values you can provide.
+
+            The string you specify for this parameter must not exceed 2000 characters and it cannot contain more than 50 scopes.  
+          schema:
+            $ref: '#/components/schemas/Scopes'
+        - name: response_mode
+          in: query
+          description: |
+            Specifies how the authorization response should be returned. Valid values are:
+
+            - ``fragment`` - Encode the response parameters in the fragment of the redirect URI. A fragment in a URI is the optional part of the URI that appears after a ``#`` symbol, which refers to a specific section within a resource. For example, ``section`` in ``https://www.mysite.org/myresource#section``.
+            - ``form_post`` - Embed the authorization response parameter in an HTML form.
+            - ``query`` -  Embed the authorization response as a query string parameter of the redirect URI. 
+
+            If ``id_token`` is stated as ``response_type``,  only ``form_post`` is allowed as ``response_mode``.'
+          schema:
+            type: string
+        - name: prompt
+          in: query
+          description: |
+            Specifies how to prompt users for authentication. Possible values are: 
+
+            - ``login`` : Always prompt the user for authentication, regardless of the state of the login session. 
+
+            **Note:** If you do not specify this parameter, the system will not prompt the user for authentication as long as a login session is active. If a login session is not active, the system will prompt the user for authentication.
+          schema:
+            type: string
+        - name: authoptions
+          in: query
+          description: A JSON object containing options that specify how to display the sign-in page. Refer the `Developer's Guide documentation on AuthOptions </en/docs/oauth/v2/developers_guide/authoptions/>`_ for supported values.
+          schema:
+            type: string
+        - name: code_challenge
+          in: query
+          description: A URL-encoded string derived from the code verifier sent in the authorization request with the Proof Key for Code Exchange (PKCE) grant flow.
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          description: |
+            The method used to derive the code challenge for the PKCE grant flow. Possible value is:
+
+            - ``S256``- Hashes the code verifier using the SHA-256 algorithm and then applies Base64 URL encoding.
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Successfully redirected to the redirect URI.
+          content:
+            application/json:
+              schema:
+                type: object
+      tags:
+        - Token
+    parameters: []
+  /authentication/v2/revoke:
+    post:
+      summary: Revoke Token
+      description: |-
+        Revokes an active access token or refresh token.
+
+        An application can only revoke its own tokens.
+
+        This operation has a rate limit of 100 calls per minute.
+      operationId: revoke
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: |
+                    The token to be revoked. 
+                token_type_hint:
+                  $ref: '#/components/schemas/tokenTypeHint'
+                client_id:
+                  $ref: '#/components/schemas/clientId'
+              required:
+                - token
+                - token_type_hint
+          application/json:
+            schema:
+              type: object
+              properties: {}
+        required: true
+      responses:
+        '200':
+          description: The token was successfully revoked. This operation has no response body.
+          content:
+            application/json:
+              schema:
+                type: object
+      tags:
+        - Token
+    parameters:
+      - $ref: '#/components/parameters/Authorization'
+  /authentication/v2/keys:
+    get:
+      summary: Get JWKS
+      description: |
+        Returns a set of public keys in the JSON Web Key Set (JWKS) format.
+
+        Public keys returned by this operation can be used to validate the asymmetric JWT signature of an access token without making network calls. It can be used to validate both two-legged access tokens and three-legged access tokens. 
+
+        See the Developer's Guide topic on `Asymmetric Signing </en/docs/oauth/v2/developers_guide/asymmetric-encryption/>`_ for more information. 
+      operationId: get-keys
+      responses:
+        '200':
+          description: ' A set of public keys in the JWKS format was returned successfully. '
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/jwks'
+              example:
+                keys:
+                  - kid: BMSYB0FZTBBA5EqqoF2g3CLYMuI5zEjl
+                    kty: RSA
+                    use: sig
+                    'n': hsCOmpYP17pNmRYgUjEPb3WzXNSvFQ0kmSWzbt2i5HYDkJmzKh7Vwgr5kQz5nQ6QVCFe2Ld30C0-a6Y9y2jolktskE6Chb8gG1bbvFdmH0TMsMLtOhzLOqSTfc8giwpYebJBmlW8BT_NWcdUH9Rk1ct4UPgu1OttzUHNulTG4t6d3X2I6oTndlGkonNPTjvEE9e5x4q38jC56RgWkS9pcdBSqa5vLeA-rGRcUyCDYVgLBaBJdnH-qxSNLbgftDmgDRdzj-sGUxUE85IY6wAadgdDMg0BWtLYwmFZwV38xPDyhSQ-AT3lvxDQMMco50Y7yOjoJf4qJ28XXZ-iNJXwUw
+                    e: AQAB
+      tags:
+        - Token
+    parameters: []
+  /authentication/v2/token:
+    post:
+      summary: Acquire Token
+      description: |
+        Returns an access token or refresh token.
+
+        * If `grant_type` is `authorization_code`, returns a 3-legged access token for authorization code grant. 
+        * If `grant_type` is `client_credentials`, returns a 2-legged access token for client credentials grant.
+        * If `grant_type` is `refresh_token`, returns new access token using the refresh token provided in the request.
+
+        Traditional Web Apps and Server-to-Server Apps should use the ``Authorization`` header with Basic Authentication for this operation. Desktop, Mobile, and Single-Page Apps should use ``client_id`` in the form body instead.
+
+        This operation has a rate limit of 500 calls per minute.
+      operationId: fetch-token
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  $ref: '#/components/schemas/GrantType'
+                code:
+                  type: string
+                  description: |
+                    The authorization code that was passed to your application when the user granted access permission to your application. It was passed as the ``code`` query parameter to the redirect URI when you called `Authorize User </en/docs/oauth/v2/reference/http/authorize-GET/>`_. 
+
+                    Required if `grant_type` is ``authorization_code``.
+                redirect_uri:
+                  type: string
+                  description: |
+                    The URI that APS redirects users to after they grant or deny access permission to the application. Must match the Callback URL for the application registered with APS. 
+
+                    Required if `grant_type` is ``authorization_code``.
+                code_verifier:
+                  type: string
+                  description: |
+                    A random URL-encoded string between 43 characters and 128 characters. In a PKCE grant flow, the authentication server uses this string to verify the code challenge that was passed when you called `Authorize User </en/docs/oauth/v2/reference/http/authorize-GET/>`_.  
+
+                    Required if ``grant_type`` is `authorization_code` and ``code_challenge`` was specified when you called `Authorize User </en/docs/oauth/v2/reference/http/authorize-GET/>`_.
+                refresh_token:
+                  type: string
+                  description: |
+                    The refresh token used to acquire a new access token and a refresh token.
+
+                    Required if ``grant_type`` is ``refresh_token``.
+                scope:
+                  $ref: '#/components/schemas/Scopes'
+                client_id:
+                  $ref: '#/components/schemas/clientId'
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          description: An access token was successfully returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      tags:
+        - Token
+    parameters: []
+  /authentication/v2/introspect:
+    post:
+      summary: Introspect Token
+      description: |-
+        Returns metadata about the specified access token or reference token.
+
+        An application can only introspect its own tokens.
+
+        This operation has a rate limit of 500 calls per minute.
+      operationId: introspect_token
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: The token to be introspected.
+                client_id:
+                  $ref: '#/components/schemas/clientId'
+      responses:
+        '200':
+          description: Metadata was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/introspectToken'
+      tags:
+        - Token
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+    parameters: []
+  /.well-known/openid-configuration:
+    get:
+      summary: Get OIDC Specification
+      tags:
+        - Token
+      responses:
+        '200':
+          description: The OIDC specification was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OidcSpec'
+      operationId: get-oidc-spec
+      description: 'Returns an OpenID Connect Discovery Specification compliant JSON document. It contains a list of the OpenID/OAuth endpoints, supported scopes, claims, public keys used to sign the tokens, and other details.'
+  /authentication/v2/logout:
+    get:
+      summary: Logout
+      tags:
+        - Token
+      responses:
+        '302':
+          description: The user was successfully logged out.
+      operationId: logout
+      description: |
+        Signs out the currently authenticated user from the APS authorization server. Thereafter, this operation redirects the user to the ``post_logout_redirect_uri``, or to the Autodesk Sign-in page when no ``post_logout_redirect_uri`` is provided.
+
+        This operation has a rate limit of 500 calls per minute.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: post_logout_redirect_uri
+          description: |
+            The URI to redirect your users to once logout is performed. If you do not specify this parameter your users are redirected to the Autodesk Sign-in page. 
+
+            **Note:**  You must provide a redirect URI that is pre-registered with APS. This precaution is taken to prevent unauthorized applications from hijacking the logout process.
+  /userinfo:
+    get:
+      summary: Get User Info
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Information about the currently logged in user was successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+      operationId: get-user-info
+      description: Retrieves information about the authenticated user.
+      security:
+        - 3-legged: []
+      parameters: []
+components:
+  schemas:
+    jwksKey:
+      title: jwkskey
+      type: object
+      properties:
+        kid:
+          type: string
+          description: The ID of the key. Acts as a unique identifier for a specific key within the JWKS.
+        kty:
+          type: string
+          description: 'The cryptographic algorithm family used with the key. Currently, always ``RSA``.'
+        use:
+          type: string
+          description: |
+            The intended use of the public key. Possible values:
+
+            - ``sig`` - Verify the signature on data.
+        'n':
+          type: string
+          description: The RSA modulus value.
+        e:
+          type: string
+          description: The RSA exponent value.
+      x-stoplight:
+        id: wp3vjpqnp0rt9
+      description: Represents a JSON Web Key Set (JWKS).
+    introspectToken:
+      title: Introspect Token Response
+      description: Represents the payload returned for an introspect token request.
+      required:
+        - active
+        - client_id
+        - exp
+        - scope
+      type: object
+      properties:
+        active:
+          type: boolean
+          description: |
+            ``true``: The token is active.
+
+            ``false``: The token is expired, invalid, or revoked.
+        scope:
+          type: string
+          description: 'A URL-encoded, space separated list of scopes associated with the token.'
+        client_id:
+          type: string
+          description: The Client ID of the application associated with the token.
+        exp:
+          type: integer
+          description: 'The expiration time of the token, represented as a Unix timestamp.'
+        userid:
+          type: string
+          description: The ID of the user who authorized the token.
+      x-stoplight:
+        id: ovhi8qyq55tzp
+    twoLeggedToken:
+      title: Client Credentials Response
+      x-stoplight:
+        id: 710vfesa2sjua
+      type: object
+      description: Represents the payload returned in response to a client credentials grant request.
+      x-examples:
+        example-1:
+          access_token: string
+          token_type: string
+          expires_in: 0
+          scope: string
+      properties:
+        access_token:
+          type: string
+          description: |
+            The access token.
+        token_type:
+          type: string
+          default: 'default: Bearer'
+          description: |
+            Will always be Bearer.
+        expires_in:
+          type: integer
+          description: Access token expiration time (in seconds).
+        expires_at:
+          type: integer
+          x-stoplight:
+            id: f6mpwstffkqqn
+          description: Access token expiration time (in seconds).
+      required:
+        - access_token
+        - expires_in
+    threeLeggedToken:
+      title: Authorization Code Grant Response
+      description: Represents the payload returned in response to an authorization code grant request.
+      x-stoplight:
+        id: gom02zfdg4ivq
+      type: object
+      properties:
+        token_type:
+          type: string
+          default: Bearer
+          description: Will always be Bearer.
+        expires_in:
+          type: integer
+          description: Access token expiration time (in seconds).
+        refresh_token:
+          type: string
+          description: The refresh token.
+        access_token:
+          type: string
+          description: The access token.
+        id_token:
+          type: string
+          description: 'The ID token, if openid scope was specified in /authorize request.'
+        expires_at:
+          type: integer
+          x-stoplight:
+            id: qwkwaepy78bpa
+          description: Access token expiration time (in seconds).
+      required:
+        - refresh_token
+        - access_token
+    OidcSpec:
+      title: OIDC Specification Response
+      type: object
+      properties:
+        issuer:
+          type: string
+          description: 'The base URL of the openID Provider. Always ``https://developer.api.autodesk.com`` for APS.'
+        authorization_endpoint:
+          type: string
+          description: The endpoint for authorizing users. It initiates the user authentication process in obtaining an authorization code grant.
+        token_endpoint:
+          type: string
+          description: The endpoint for acquiring access tokens and refresh tokens.
+        userinfo_endpoint:
+          type: string
+          description: The endpoint for querying information about the authenticated user.
+        jwks_uri:
+          type: string
+          description: 'The endpoint for retrieving public keys used by APS, in the JWKS format.'
+        revoke_endpoint:
+          type: string
+          description: The endpoint for revoking an access token or refresh token.
+        introspection_endpoint:
+          type: string
+          description: The endpoint for obtaining metadata about an access token or refresh token.
+        scopes_supported:
+          type: array
+          items:
+            type: string
+          description: A list of supported scopes.
+        response_types_supported:
+          type: array
+          items:
+            type: string
+          description: A list of the response types supported by APS. Each response type represent a different flow.
+        response_modes_supported:
+          type: array
+          items:
+            type: string
+          description: A list of response modes supported by APS. Each response mode defines a different way of delivering an authorization response.
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+          description: A list of grant types supported by APS. Each grant type represents a different way an application can obtain an access token.
+        subject_types_supported:
+          type: array
+          items:
+            type: string
+          description: A list of subject identifier types supported by APS.
+        id_token_signing_alg_values_supported:
+          type: array
+          items:
+            type: string
+          description: A list of all the token signing algorithms supported by APS.
+      x-examples:
+        Example 1:
+          issuer: 'https://developer.api.autodesk.com'
+          authorization_endpoint: 'https://developer.api.autodesk.com/authentication/v2/authorize'
+          token_endpoint: 'https://developer.api.autodesk.com/authentication/v2/token'
+          userinfo_endpoint: 'https://api.userprofile.autodesk.com/userinfo'
+          jwks_uri: 'https://developer.api.autodesk.com/authentication/v2/keys'
+          revocation_endpoint: 'https://developer.api.autodesk.com/authentication/v2/revoke'
+          introspection_endpoint: 'https://developer.api.autodesk.com/authentication/v2/introspect'
+          scopes_supported:
+            - 'user-profile:read'
+            - 'user:read'
+            - 'user:write'
+            - 'viewables:read'
+            - 'data:read'
+            - 'data:write'
+            - 'data:create'
+            - 'data:search'
+            - 'bucket:create'
+            - 'bucket:read'
+            - 'bucket:update'
+            - 'bucket:delete'
+            - 'code:all'
+            - 'account:read'
+            - 'account:write'
+            - openid
+          response_types_supported:
+            - code
+            - code id_token
+            - id_token
+          response_modes_supported:
+            - fragment
+            - form_post
+            - query
+          grant_types_supported:
+            - authorization_code
+            - client_credentials
+            - refresh_token
+          subject_types_supported:
+            - public
+          id_token_signing_alg_values_supported:
+            - RS256
+      description: Represents a successful response to a Get OIDC Specification operation.
+    Scopes:
+      title: Scopes
+      x-stoplight:
+        id: l6ukt54b1u998
+      type: string
+      description: |
+        Specifies the scope for the token you are requesting. See the `Developer's Guide documentation on scopes </en/docs/oauth/v2/developers_guide/scopes/>`_ for a complete list of possible values.
+      enum:
+        - 'user:read'
+        - 'user:write'
+        - 'user-profile:read'
+        - 'viewables:read'
+        - 'data:read'
+        - 'data:read:<URN_OF_RESOURCE>'
+        - 'data:write'
+        - 'data:create'
+        - 'data:search'
+        - 'bucket:create'
+        - 'bucket:read'
+        - 'bucket:update'
+        - 'bucket:delete'
+        - 'code:all'
+        - 'account:read'
+        - 'account:write'
+        - openid
+    GrantType:
+      title: grantType
+      x-stoplight:
+        id: qabq62fprc7su
+      type: string
+      enum:
+        - client_credentials
+        - authorization_code
+        - refresh_token
+      description: |
+        Specifies the grant type you are requesting the code for. Possible values are: 
+
+        - ``client_credentials`` -  For a 2-legged access token.
+        - ``authorization_code`` - For a 3-legged access token.
+        - ``refresh_token`` - For a refresh token.
+    UserInfo:
+      type: object
+      x-stoplight:
+        id: 76f4f5a6324c0
+      properties:
+        sub:
+          type: string
+          description: The ID by which APS uniquely identifies the user.
+        name:
+          type: string
+          description: The full name of the user.
+        given_name:
+          type: string
+          description: The given name or first name of the user.
+        family_name:
+          type: string
+          description: The surname or last name of the user.
+        preferred_username:
+          type: string
+          description: The username by which the user prefers to be addressed.
+        email:
+          type: string
+          description: The email address by which the user prefers to be contacted.
+        email_verified:
+          type: boolean
+          description: |
+            ``true`` : The user's preferred email address is verified.
+
+            ``false``: The user's preferred email address is not verified.
+        profile:
+          type: string
+          description: The URL of the profile page of the user.
+        picture:
+          type: string
+          description: The URL of the profile picture of the user.
+        locale:
+          type: string
+          description: 'The preferred language settings of the user. This setting is typically specified as a combination of the ISO 639 language code in lower case, and the ISO 3166 country code in upper case, separated by a dash character. For example ``en-US``.'
+        updated_at:
+          type: integer
+          description: 'The time the user''s information was most recently updated, represented as a Unix timestamp.'
+        is_2fa_enabled:
+          type: boolean
+          description: |
+            ``true``: Two-factor authentication is enabled for this user. 
+
+            ``false``: Two-factor authentication is not enabled for this user.
+        country_code:
+          type: string
+          description: The ISO 3166 country code that was assigned to the user when their profile was created.
+        address:
+          type: object
+          description: A JSON object containing information of the postal address of the user.
+          properties:
+            street_address:
+              type: string
+              description: 'The street address part of the address. Can contain the house number, street name, postal code, and so on.  New lines are represented as ``\n``.'
+            locality:
+              type: string
+              description: The city or locality part of the address.
+            region:
+              type: string
+              description: 'The state, province, prefecture, or region part of the address.'
+            postal_code:
+              type: string
+              description: The zip code or postal code part of the address.
+            country:
+              type: string
+              description: The country name part of the address.
+        phone_number:
+          type: string
+          description: The phone number by which the user prefers to be contacted.
+        phone_number_verified:
+          type: boolean
+          description: |
+            ``true`` : The phone number is verified.
+
+            ``false`` : The phone number is not verified.
+        ldap_enabled:
+          type: boolean
+          description: |
+            ``true`` :  Single sign-on using Lightweight Directory Access Protocol (LDAP) is enabled for this user.
+
+            ``false`` : LDAP is not enabled for this user.
+        ldap_domain:
+          type: string
+          description: 'The domain name used by the LDAP server for user authentication. ``null``, if ``ldap_enabled`` is ``false``.'
+        job_title:
+          type: string
+          description: The job title of the user as specified in the user's profile.
+        industry:
+          type: string
+          description: 'The industry the user works in, as specified in the user''s profile.'
+        industry_code:
+          type: string
+          description: A code that corresponds to the industry.
+        about_me:
+          type: string
+          description: 'A short description written by the user to introduce themselves, as specified in the user''s profile.'
+        language:
+          type: string
+          description: The ISO 639 language code of the preferred language of the user.
+        company:
+          type: string
+          description: 'The company that the user works for, as specified in the user''s profile.'
+        created_date:
+          type: string
+          description: 'The time the user profile was created, represented as a Unix timestamp.'
+        last_login_date:
+          type: string
+          description: 'The time the user most recently signed-in to APS successfully, represented as a Unix timestamp.'
+        eidm_guid:
+          type: string
+          description: 'An ID to uniquely identify the user. For most users this will be the same as ``sub``. However, for users profiles created on the now retired EIDM system ``eidm_guid`` will be different from ``sub``.'
+        opt_in:
+          type: boolean
+          description: |
+            ``true`` : The user has agreed to receive marketing information.
+
+            ``false``: The user does not want to receive marketing information.
+        social_userinfo_list:
+          type: array
+          description: 'An array of objects, where each object represents a social media account that can be used to verify the user''s identity.'
+          items:
+            type: object
+            properties:
+              socialUserId:
+                type: string
+                description: The ID of the user within the social media platform.
+              providerId:
+                type: string
+                description: The ID of the social media platform.
+              providerName:
+                type: string
+                description: The name of the social media platform.
+        thumbnails:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'An array of key-value pairs containing image URLs for various thumbnail sizes of the user''s profile picture. The key is named ``sizeX<NUMBER>`` where ``<NUMBER>`` is the width and height of the thumbnail, in pixels. The corresponding value is the URL pointing to the thumbnail. For example, ``sizeX200`` would contain the URL for the 200x200 pixel thumbnail.'
+      x-examples:
+        Example 1:
+          sub: ABCDEFGH
+          name: First Last
+          given_name: First
+          family_name: Last
+          preferred_username: username
+          email: test@test.com
+          email_verified: true
+          profile: 'https://profile(-dev/-int/-stg/'''').autodesk.com'
+          picture: 'https://images.profile(-dev/-int/-stg/'''').autodesk.com/ABCDEFGH/profilepictures/x120.jpg'
+          locale: en-US
+          updated_at: 1662583480
+          is_2fa_enabled: false
+          country_code: US
+          address:
+            street_address: |
+              testaddress1
+            locality: testcity
+            region: ''
+            postal_code: ''
+            country: US
+          phone_number: '+1 1234567890 #123'
+          phone_number_verified: false
+          ldap_enabled: true
+          ldap_domain: autodesk.com
+          job_title: 3D generalist
+          industry: IT/Software development
+          industry_code: NoGroupOther
+          about_me: I'm completing a test right now.
+          language: en
+          company: Autodeskf
+          created_date: '2017-12-11T20:54:18Z'
+          last_login_date: '2020-05-10T04:00:29Z'
+          eidm_guid: ABCDEFGH
+          opt_in: false
+          social_userinfo_list:
+            - socialUserId: test.social_userid
+              providerId: test1.uid
+              providerName: Google
+          thumbnails:
+            sizeX20: 'https://images.profile-dev.autodesk.com/default/user_X20.png'
+            sizeX40: 'https://images.profile-dev.autodesk.com/default/user_X40.png'
+            sizeX50: 'https://images.profile-dev.autodesk.com/default/user_X50.png'
+            sizeX58: 'https://images.profile-dev.autodesk.com/default/user_X58.png'
+            sizeX80: 'https://images.profile-dev.autodesk.com/default/user_X80.png'
+            sizeX120: 'https://images.profile-dev.autodesk.com/default/user_X120.png'
+            sizeX160: 'https://images.profile-dev.autodesk.com/default/user_X160.png'
+            sizeX176: 'https://images.profile-dev.autodesk.com/default/user_X176.png'
+            sizeX240: 'https://images.profile-dev.autodesk.com/default/user_X240.png'
+            sizeX360: 'https://images.profile-dev.autodesk.com/default/user_X360.png'
+      title: UserInfo Response
+      description: Represents a successful response to a Get User Info operation.
+    jwks:
+      title: JWKS Payload
+      x-stoplight:
+        id: 54hqs1b4gv5fy
+      type: object
+      description: Represents a successful response to a Get JWKS operation.
+      properties:
+        keys:
+          type: array
+          x-stoplight:
+            id: mrc2tc7y5gded
+          description: An array of objects where each object represents a JSON Web Key Set (JWKS).
+          items:
+            $ref: '#/components/schemas/jwksKey'
+    tokenTypeHint:
+      title: tokenTypeHint
+      x-stoplight:
+        id: ygxy8lpuc8nuh
+      type: string
+      enum:
+        - access_token
+        - refresh_token
+      description: |
+        The type of token to revoke. Possible values are: ``access_token`` and ``refresh_token``.
+    responseType:
+      title: responseType
+      x-stoplight:
+        id: pzowclrc6omzd
+      type: string
+      enum:
+        - code
+        - id_token
+      description: |
+        The type of response you want to receive. Possible values are: 
+
+         -  ``code`` - Authorization code grant.
+         -  ``id_token`` - OpenID Connect ID token.
+    clientId:
+      title: clientId
+      x-stoplight:
+        id: j0qsjvxe873qp
+      type: string
+      description: |-
+        The Client ID of the application making the request.
+
+        **Note** This is required only for Traditional Web Apps and Server-to-Server Apps. It is not required for Desktop, Mobile, and Single-Page Apps.
+  responses: {}
+  securitySchemes:
+    client-credentials:
+      type: http
+      description: Basic Authorization by providing client id and client secret.
+      scheme: basic
+    basic-auth:
+      type: http
+      description: 'Authorization:  Basic clientIdclientsecret'
+      scheme: basic
+    3-legged:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://developer.api.autodesk.com/authentication/v2/authorize'
+          tokenUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          refreshUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          scopes:
+            'data:read': read your data
+            'data:write': modify your data
+            'data:create': create new data
+      x-authentication_context: user context required
+      description: User context required.
+    2-legged:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          scopes:
+            'data:read': read application accessible data
+            'data:write': write application accessible data
+            'data:create': create application accessible data
+      x-authentication_context: application context required
+      description: Application context required.
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: false
+      schema:
+        type: string
+      description: |
+        Must be ``Bearer <BASE64_ENCODED_STRING>`` where ``<BASE64_ENCODED_STRING>`` is the Base64 encoding of the concatenated string ``<CLIENT_ID>:<CLIENT_SECRET>``.'
+
+        **Note** This header is required only for Traditional Web Apps and Server-to-Server Apps. It is not required for Desktop, Mobile, and Single-Page Apps.
+tags:
+  - name: Token
+  - name: Users

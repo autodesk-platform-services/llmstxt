@@ -1,0 +1,4370 @@
+openapi: 3.1.0
+x-stoplight:
+  id: zm6m3b30rcbon
+info:
+  title: Account Admin
+  version: '1.0'
+  contact:
+    name: Autodesk Plaform Services
+    url: 'https://aps.autodesk.com/'
+    email: aps.help@autodesk.com
+  termsOfService: 'https://www.autodesk.com/company/legal-notices-trademarks/terms-of-service-autodesk360-web-services/forge-platform-web-services-api-terms-of-service'
+  description: |
+    The Account Admin API automates creating and managing projects, assigning and managing project users, and managing member and partner company directories. You can also synchronize data with external systems.
+servers:
+  - url: 'https://developer.api.autodesk.com'
+paths:
+  '/construction/admin/v1/accounts/{accountId}/projects':
+    parameters:
+      - schema:
+          type: string
+        name: accountId
+        in: path
+        required: true
+        description: 'The ID of the ACC account that contains the project being created or the projects being retrieved. This corresponds to the hub ID in the Data Management API. To convert a hub ID into an account ID, remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+    get:
+      summary: Get Project in account
+      responses:
+        '200':
+          description: A list of requested projects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Projects'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: getProjects
+      description: Retrieves a list of the projects in the specified account.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+        - schema:
+            $ref: '#/components/schemas/fields_internal'
+          in: query
+          name: fields
+          description: 'A comma-separated list of the project fields to include in the response. Default value: all fields.'
+        - schema:
+            $ref: '#/components/schemas/filterClassification_internal'
+          in: query
+          name: 'filter[classification]'
+          description: 'A list of the classifications of projects to include in the response. Possible values: production, template, component, sample.'
+        - schema:
+            $ref: '#/components/schemas/filterPlatform_internal'
+          in: query
+          name: 'filter[platform]'
+          description: 'Filter resource by platform. Possible values: acc and bim360.'
+        - schema:
+            $ref: '#/components/schemas/products_internal'
+          in: query
+          name: 'filter[products]'
+          description: A comma-separated list of the products that the returned projects must use. Only projects that use one or more of the listed products are returned.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[name]'
+          description: 'A project name or name pattern to filter projects by. Can be a partial match based on the value of filterTextMatch that you provide; for example: filter[name]=ABCco filterTextMatch=startsWith.  Max length: 255'
+        - schema:
+            $ref: '#/components/schemas/filterType'
+          in: query
+          name: 'filter[type]'
+          description: 'A list of project types to filter projects by. To exclude a project type from the response, prefix it with - (a hyphen); for example, -Bridge excludes bridge projects.'
+        - schema:
+            $ref: '#/components/schemas/status_internal'
+          in: query
+          name: 'filter[status]'
+          description: 'A list of the statuses of projects to include in the response. Possible values:  active pending archived suspended'
+        - schema:
+            type: string
+          in: query
+          name: 'filter[businessUnitId]'
+          description: The ID of the business unit that returned projects must be associated with.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[jobNumber]'
+          description: The user-defined identifier for a project to be returned. This ID was defined when the project was created. This filter accepts a partial match based on the value of filterTextMatch that you provide.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[updatedAt]'
+          description: A range of dates during which the desired projects were updated. The range must be specified with dates in ISO 8601 format with time required. Separate multiple values with commas.
+        - schema:
+            $ref: '#/components/schemas/filterTextMatch'
+          in: query
+          name: filterTextMatch
+          description: 'When filtering on a text-based field, this value indicates how to do the matching. Default value: contains. Possible values: contains, startsWith, endsWith and equals.'
+        - schema:
+            $ref: '#/components/schemas/sort_internal'
+          in: query
+          name: sort
+          description: A list of fields to sort the returned projects by. Multiple sort fields are applied in sequence order — each sort field produces groupings of projects with the same values of that field; the next sort field applies within the groupings produced by the previous sort field.
+        - schema:
+            type: number
+          in: query
+          name: limit
+          description: 'The maximum number of records to return in a single request. Possible range: 1-200. Default value: 20.'
+        - schema:
+            type: number
+          in: query
+          name: offset
+          description: 'The record number that the returned page should start with. When the total number of records exceeds the value of limit, increase the offset value in subsequent requests to continue getting the remaining results.'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Projects
+    post:
+      summary: Create new Project
+      responses:
+        '202':
+          description: APS has received the request but not yet completed it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '415':
+          description: The server refuses to accept the request because the payload format is in an unsupported format.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: createProject
+      description: 'Creates a new project in the specified account. You can create the project directly, or clone the project from a project template.'
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Projects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectPayload'
+  '/construction/admin/v1/projects/{projectId}':
+    parameters:
+      - schema:
+          type: string
+        name: projectId
+        in: path
+        required: true
+    get:
+      summary: Get a project by ID
+      responses:
+        '200':
+          description: A list of requested projects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '407':
+          description: Proxy Authentication Required
+        '410':
+          description: Access to the target resource is no longer available.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: getProject
+      description: Retrieves a project specified by project ID.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+        - in: query
+          name: fields
+          description: 'A comma-separated list of the project fields to include in the response. Default value: all fields.'
+          schema:
+            $ref: '#/components/schemas/fields_internal'
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      tags:
+        - Projects
+  '/hq/v1/accounts/{account_id}/projects/{project_id}/image':
+    patch:
+      summary: Create or update a project’s image
+      operationId: createProjectImage
+      responses:
+        '200':
+          description: A list of requested projects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPatchResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      description: Create or update a project’s image.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+                  description: 'The file to be uploaded as HTTP multipart (chunk) data. Supported MIME types are image/png, image/jpeg, image/jpg, image/bmp, and image/gif.'
+                  format: binary
+      tags:
+        - Projects
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+    parameters:
+      - schema:
+          type: string
+        name: project_id
+        in: path
+        required: true
+        description: 'The account ID of the project. This corresponds to hub ID in the Data Management API. To convert a hub ID into an account ID you need to remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: 'The ID of the project. This corresponds to project ID in the Data Management API. To convert a project ID in the Data Management API into a project ID in the BIM 360 API you need to remove the “b.” prefix. For example, a project ID of b.a4be0c34a-4ab7 translates to a project ID of a4be0c34a-4ab7.'
+  '/hq/v1/accounts/{account_id}/companies':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: 'The account ID of the company. This corresponds to hub ID in the Data Management API. To convert a hub ID into an account ID you need to remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+    get:
+      summary: Get all companies in an account
+      tags:
+        - Companies
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+                  x-stoplight:
+                    id: talz7czxqzv5p
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: getCompanies
+      description: |-
+        Query all the partner companies in a specific BIM 360 account.
+        Note that this endpoint is compatible with both BIM 360 and Autodesk Construction Cloud (ACC) projects.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+        - schema:
+            type: number
+          in: query
+          name: limit
+          description: 'Response array’s size Default value: 10 Max limit: 100'
+        - schema:
+            type: number
+          in: query
+          name: offset
+          description: 'Offset of response array Default value: 0'
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: Comma-separated fields to sort by in ascending order  Prepending a field with - sorts in descending order Invalid fields and whitespaces will be ignored
+        - schema:
+            type: string
+          in: query
+          name: field
+          description: Comma-separated fields to include in response  id will always be returned Invalid fields will be ignored
+    post:
+      summary: Create a new partner company
+      tags:
+        - Companies
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '201':
+          description: A new resource has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: createCompany
+      description: |-
+        Create a new partner company.
+        Note that this endpoint is compatible with both BIM 360 and Autodesk Construction Cloud (ACC) projects.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyPayload'
+  '/hq/v1/accounts/{account_id}/companies/import':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: 'The account ID of the company. This corresponds to hub ID in the Data Management API. To convert a hub ID into an account ID you need to remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+    post:
+      summary: Bulk import partner companies
+      tags:
+        - Companies
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '201':
+          description: A new resource has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyImportResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: importCompanies
+      description: |-
+        Bulk import partner companies to the company directory in a specific BIM 360 account. (50 companies maximum can be included in each call.)
+        Note that this endpoint is compatible with both BIM 360 and Autodesk Construction Cloud (ACC) projects.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CompanyPayload'
+                x-stoplight:
+                  id: oo7x7y92yduxj
+  '/hq/v1/accounts/{account_id}/companies/{company_id}':
+    parameters:
+      - schema:
+          type: string
+        name: company_id
+        in: path
+        required: true
+        description: Company ID
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: The account ID of the company.
+    get:
+      summary: Get details of a company
+      tags:
+        - Companies
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: getCompany
+      description: Query the details of a specific partner company.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+    patch:
+      summary: Update the properties of company
+      operationId: patchCompanyDetails
+      tags:
+        - Companies
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      description: Update the properties of only the specified attributes of a specific partner company.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyPatchPayload'
+  '/hq/v1/accounts/{account_id}/companies/{company_id}/image':
+    parameters:
+      - schema:
+          type: string
+        name: company_id
+        in: path
+        required: true
+        description: Company ID
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: The account ID of the company.
+    patch:
+      summary: Create or update a company’s image
+      operationId: patchCompanyImage
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      tags:
+        - Companies
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      description: Create or update a specific partner company’s image.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+                  description: 'The file to be uploaded as HTTP multipart (chunk) data. Supported MIME types are image/png, image/jpeg, image/jpg, image/bmp, and image/gif.'
+                  format: binary
+  '/hq/v1/accounts/{account_id}/companies/search':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: The account ID of the company.
+    get:
+      summary: Search companies in account by name
+      tags:
+        - Companies
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+                  x-stoplight:
+                    id: lcdrvybcvuy9t
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: searchCompanies
+      description: |-
+        Search partner companies in a specific BIM 360 account by name.
+        Note that this endpoint is compatible with both BIM 360 and Autodesk Construction Cloud (ACC) projects.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+        - schema:
+            type: string
+          in: query
+          name: name
+          description: 'Company name to match Max length: 255'
+        - schema:
+            type: string
+          in: query
+          name: trade
+          description: 'Company trade to match Max length: 255'
+        - schema:
+            type: string
+          in: query
+          name: operator
+          description: 'Boolean operator to use: OR (default) or AND'
+        - schema:
+            type: boolean
+          in: query
+          name: partial
+          description: 'If true (default), perform a fuzzy match'
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: 'Response array’s size Default value: 10 Max limit: 100'
+        - schema:
+            type: integer
+          in: query
+          name: offset
+          description: 'Offset of response array Default value: 0'
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: Comma-separated fields to sort by in ascending order
+        - schema:
+            type: string
+          in: query
+          name: field
+          description: Comma-separated fields to include in response
+  '/hq/v1/accounts/{account_id}/projects/{project_id}/companies':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: The account ID of the company.
+      - schema:
+          type: string
+        name: project_id
+        in: path
+        required: true
+        description: 'The ID of the project. '
+    get:
+      summary: Get all companies in a project
+      tags:
+        - Companies
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanyResponse'
+                  x-stoplight:
+                    id: lcdrvybcvuy9t
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: getProjectCompanies
+      description: |-
+        Query all the partner companies in a specific BIM 360 project.
+        Note that this endpoint is compatible with both BIM 360 and Autodesk Construction Cloud (ACC) projects.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: 'Response array’s size Default value: 10 Max limit: 100'
+        - schema:
+            type: integer
+          in: query
+          name: offset
+          description: 'Offset of response array Default value: 0'
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: Comma-separated fields to sort by in ascending order
+        - schema:
+            type: string
+          in: query
+          name: field
+          description: Comma-separated fields to include in response
+  '/hq/v1/accounts/{account_id}/users':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: 'The account ID of the users. This corresponds to hub ID in the Data Management API. To convert a hub ID into an account ID you need to remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+    get:
+      summary: Get account users
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+                  x-stoplight:
+                    id: lcdrvybcvuy9t
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: getUsers
+      description: Query all the users in a specific BIM 360 account.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: 'Response array’s size Default value: 10 Max limit: 100'
+        - schema:
+            type: integer
+          in: query
+          name: offset
+          description: 'Offset of response array Default value: 0'
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: Comma-separated fields to sort by in ascending order
+        - schema:
+            type: string
+          in: query
+          name: field
+          description: Comma-separated fields to include in response
+      tags:
+        - Account Users
+    post:
+      summary: Create User
+      operationId: createUser
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '201':
+          description: A new resource has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      description: Create a new user in the BIM 360 member directory.
+      tags:
+        - Account Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPayload'
+  '/hq/v1/accounts/{account_id}/users/import':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: 'The account ID of the users. This corresponds to hub ID in the Data Management API. To convert a hub ID into an account ID you need to remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+    post:
+      summary: Bulk import users
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '201':
+          description: A new resource has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserImportResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: importUsers
+      description: Bulk import users to the master member directory in a BIM 360 account. (50 users maximum can be included in each call.)
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserPayload'
+                x-stoplight:
+                  id: oo7x7y92yduxj
+      tags:
+        - Account Users
+  '/hq/v1/accounts/{account_id}/users/{user_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: The account ID of the user.
+      - schema:
+          type: string
+        name: user_id
+        in: path
+        required: true
+        description: User ID
+    get:
+      summary: Get the details of a user
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: getUser
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      description: Query the details of a specific user.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      tags:
+        - Account Users
+    patch:
+      summary: Update User
+      operationId: patchUserDetails
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      description: Update a specific user’s status or default company.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatchPayload'
+      tags:
+        - Account Users
+  '/hq/v1/accounts/{account_id}/users/search':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: The account ID of the users.
+    get:
+      summary: Search Users
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+                  x-stoplight:
+                    id: lcdrvybcvuy9t
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource
+        '422':
+          description: The request was unable to be followed due to restrictions.
+        '500':
+          description: Internal Server Error
+      operationId: searchUsers
+      description: Search users in the master member directory of a specific BIM 360 account by specified fields.
+      security:
+        - 2-legged: []
+        - 3-legged: []
+        - 3-legged-implicit: []
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+        - schema:
+            type: string
+          in: query
+          name: name
+          description: 'User name to match Max length: 255'
+        - schema:
+            type: string
+          in: query
+          name: email
+          description: 'User email to match Max length: 255'
+        - schema:
+            type: string
+          in: query
+          name: company_name
+          description: 'User company to match Max length: 255'
+        - schema:
+            type: string
+          in: query
+          name: operator
+          description: 'Boolean operator to use: OR (default) or AND'
+        - schema:
+            type: boolean
+          in: query
+          name: partial
+          description: 'If true (default), perform a fuzzy match'
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: 'Response array’s size Default value: 10 Max limit: 100'
+        - schema:
+            type: integer
+          in: query
+          name: offset
+          description: 'Offset of response array Default value: 0'
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: Comma-separated fields to sort by in ascending order
+        - schema:
+            type: string
+          in: query
+          name: field
+          description: Comma-separated fields to include in response
+      tags:
+        - Account Users
+  '/construction/admin/v1/projects/{projectId}/users':
+    parameters:
+      - schema:
+          type: string
+        name: projectId
+        in: path
+        required: true
+        description: 'The ID of the project. This corresponds to project ID in the Data Management API. To convert a project ID in the Data Management API into a project ID in the ACC API you need to remove the “b.” prefix. For example, a project ID of b.a4be0c34a-4ab7 translates to a project ID of a4be0c34a-4ab7.'
+    get:
+      summary: Get project users
+      responses:
+        '200':
+          description: A list of requested project users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUsers'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: getProjectUsers
+      description: |-
+        Retrieves information about a filtered subset of users in the specified project.
+
+        There are two primary reasons to do this:
+
+        To verify that all users assigned to the project have been activated as members of the project.
+        To check other information about users, such as their project user ID, roles, and products.
+        Note that if you want to retrieve information about users associated with a particular Autodesk account, call the GET users endpoint.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+        - schema:
+            $ref: '#/components/schemas/products_internal'
+          in: query
+          name: 'filter[products]'
+          description: A comma-separated list of the products that the returned projects must use. Only projects that use one or more of the listed products are returned.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[name]'
+          description: 'A user name or name pattern to filter users by. Can be a partial match based on the value of filterTextMatch that you provide; for example: filter[name]=ABCco filterTextMatch=startsWith.  Max length: 255'
+        - schema:
+            type: string
+          in: query
+          name: 'filter[email]'
+          description: 'A user email address or address pattern that the returned users must have. This can be a partial match based on the value of filterTextMatch that you provide. For example:  filter[email]=sample filterTextMatch=startsWith  Max length: 255'
+        - schema:
+            $ref: '#/components/schemas/statusFilter_internal'
+          in: query
+          name: 'filter[status]'
+          description: A list of statuses that the returned project users must be in. The default values are active and pending.
+        - schema:
+            $ref: '#/components/schemas/accessLevels_internal'
+          in: query
+          name: 'filter[accessLevels]'
+          description: A list of user access levels that the returned users must have.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[companyId]'
+          description: The ID of a company that the returned users must represent.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[companyName]'
+          description: 'The name of a company that returned users must be associated with. Can be a partial match based on the value of filterTextMatch that you provide. For example: filter[companyName]=Sample filterTextMatch=startsWith  Max length: 255'
+        - schema:
+            $ref: '#/components/schemas/filterAutodeskId'
+          in: query
+          name: 'filter[autodeskId]'
+          description: A list of the Autodesk IDs of users to retrieve.
+        - schema:
+            $ref: '#/components/schemas/filterID'
+          in: query
+          name: 'filter[id]'
+          description: A list of the ACC IDs of users to retrieve.
+        - schema:
+            type: string
+          in: query
+          name: 'filter[roleId]'
+          description: 'The ID of a user role that the returned users must have. To obtain a role ID for this filter, you can inspect the roleId field in previous responses to this endpoint or to the GET projects/:projectId/users/:userId endpoint.  Max length: 255'
+        - schema:
+            $ref: '#/components/schemas/filterRoleIds'
+          in: query
+          name: 'filter[roleIds]'
+          description: 'A list of the IDs of user roles that the returned users must have. To obtain a role ID for this filter, you can inspect the roleId field in previous responses to this endpoint or to the GET projects/:projectId/users/:userId endpoint.'
+        - schema:
+            $ref: '#/components/schemas/userSortBy_internal'
+          in: query
+          name: sort
+          description: A list of fields to sort the returned users by. Multiple sort fields are applied in sequence order — each sort field produces groupings of projects with the same values of that field; the next sort field applies within the groupings produced by the previous sort field.
+        - schema:
+            $ref: '#/components/schemas/userFields_internal'
+          in: query
+          name: fields
+          description: 'A list of the project fields to include in the response. Default value: all fields.'
+        - schema:
+            $ref: '#/components/schemas/orFilters_internal'
+          in: query
+          name: orFilters
+          description: A list of user fields to combine with the SQL OR operator for filtering the returned project users. The OR is automatically incorporated between the fields; any one of them can produce a valid match.
+        - schema:
+            $ref: '#/components/schemas/filterTextMatch'
+          in: query
+          name: filterTextMatch
+          description: 'When filtering on a text-based field, this value indicates how to do the matching. Default value: contains. Possible values: contains, startsWith, endsWith and equals.'
+        - schema:
+            type: number
+          in: query
+          name: limit
+          description: 'The maximum number of records to return in a single request. Possible range: 1-200. Default value: 20.'
+        - schema:
+            type: number
+          in: query
+          name: offset
+          description: 'The record number that the returned page should start with. When the total number of records exceeds the value of limit, increase the offset value in subsequent requests to continue getting the remaining results.'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Project Users
+    post:
+      summary: Assigns a user to the specified project
+      responses:
+        '201':
+          description: Successfully added the user to the project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUserResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '412':
+          description: The server refuses to accept the request because a pre-condition failed.
+        '415':
+          description: The server refuses to accept the request because the payload format is in an unsupported format.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: assignProjectUser
+      description: Assigns a user to the specified project.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUserPayload'
+      tags:
+        - Project Users
+  '/construction/admin/v2/projects/{projectId}/users:import':
+    parameters:
+      - schema:
+          type: string
+        name: projectId
+        in: path
+        required: true
+        description: 'The ID of the project. This corresponds to project ID in the Data Management API. To convert a project ID in the Data Management API into a project ID in the ACC API you need to remove the “b.” prefix. For example, a project ID of b.a4be0c34a-4ab7 translates to a project ID of a4be0c34a-4ab7.'
+    post:
+      summary: Assigns multiple users to a project
+      responses:
+        '202':
+          description: The request has been received but not yet acted upon.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUsersImportResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '412':
+          description: The server refuses to accept the request because a pre-condition failed.
+        '415':
+          description: The server refuses to accept the request because the payload format is in an unsupported format.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: importProjectUsers
+      description: Assigns multiple users to a project at once. This endpoint can assign up to 200 users per request.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUsersImportPayload'
+      tags:
+        - Project Users
+  '/construction/admin/v1/projects/{projectId}/users/{userId}':
+    parameters:
+      - schema:
+          type: string
+        name: projectId
+        in: path
+        required: true
+        description: 'The ID of the project. This corresponds to project ID in the Data Management API. To convert a project ID in the Data Management API into a project ID in the ACC API you need to remove the “b.” prefix. For example, a project ID of b.a4be0c34a-4ab7 translates to a project ID of a4be0c34a-4ab7.'
+      - schema:
+          type: string
+        name: userId
+        in: path
+        required: true
+        description: The ID of the user. You can use either the ACC ID (id) or the Autodesk ID (autodeskId).
+    get:
+      summary: Get project user
+      responses:
+        '200':
+          description: Information about the requested project user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUser'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: getProjectUser
+      description: |-
+        Retrieves detailed information about the specified user in a project.
+
+        There are two primary reasons to do this:
+
+        To verify that a user assigned to the specified project has been activated as a member of the project.
+        To check other information about the user, such as their project user ID, roles, and products.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+        - schema:
+            $ref: '#/components/schemas/userFields_internal'
+          in: query
+          name: fields
+          description: 'A comma-separated list of the project fields to include in the response. Default value: all fields.'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Project Users
+    patch:
+      summary: Update user in project
+      responses:
+        '201':
+          description: The project user was successfully updated. The response includes only the fields being updated along with the ACC ID of the user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUserResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '406':
+          description: Not Acceptable
+        '410':
+          description: Access to the target resource is no longer available.
+        '412':
+          description: The server refuses to accept the request because a pre-condition failed.
+        '415':
+          description: The server refuses to accept the request because the payload format is in an unsupported format.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: updateProjectUser
+      description: |-
+        Updates information about the specified user in a project.
+
+        Note that the Authorization header token can be obtained either via a three-legged OAuth flow, or via a two-legged Oauth flow with user impersonation, for which the User-Id header is also required.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUsersUpdatePayload'
+      tags:
+        - Project Users
+    delete:
+      summary: Remove Project User
+      responses:
+        '204':
+          description: 'The request has succeeded, no content returned.'
+          content: {}
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '410':
+          description: Access to the target resource is no longer available.
+        '415':
+          description: The server refuses to accept the request because the payload format is in an unsupported format.
+        '429':
+          description: User has sent too many requests in a given amount of time.
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Service Unavailable
+      operationId: removeProjectUser
+      description: |-
+        Removes the specified user from a project.
+
+        Note that the Authorization header token can be obtained either via a three-legged OAuth flow, or via a two-legged Oauth flow with user impersonation, for which the User-Id header is also required.
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept-Language
+          description: This header is not currently supported in the Account Admin API.
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The region where the bucket resides. Acceptable values: US, EMEA.'
+        - schema:
+            type: string
+          in: header
+          name: User-Id
+          description: 'Note that this header is not relevant for Account Admin GET endpoints. The ID of a user on whose behalf your API request is acting. Required if you’re using a 2-legged authentication context, which must be 2-legged OAuth2 security with user impersonation.  Your app has access to all users specified by the administrator in the SaaS integrations UI. Provide this header value to identify the user to be affected by the request.  You can use either the user’s ACC ID (id), or their Autodesk ID (autodeskId).'
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Project Users
+  '/hq/v1/accounts/{account_id}/business_units_structure':
+    get:
+      summary: Get Business Units
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessUnitsResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource.
+        '422':
+          description: The request was unable to be followed due to restrictions
+        '500':
+          description: An unexpected error occurred on the server
+      operationId: getBusinessUnits
+      description: Query all the business units in a specific BIM 360 account.
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Business Units
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: 'The account ID of the business unit. This corresponds to hub ID in the Data Management API. To convert a hub ID into an account ID you need to remove the “b.” prefix. For example, a hub ID of b.c8b0c73d-3ae9 translates to an account ID of c8b0c73d-3ae9.'
+    put:
+      summary: Create Business Units
+      responses:
+        '200':
+          description: The request has succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessUnitsResponse'
+        '400':
+          description: The request could not be understood by the server due to malformed syntax.
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: The request could not be completed due to a conflict with the current state of the resource.
+        '422':
+          description: The request was unable to be followed due to restrictions
+        '500':
+          description: An unexpected error occurred on the server
+      operationId: createBusinessUnits
+      parameters:
+        - schema:
+            $ref: '#/components/schemas/Region'
+          in: header
+          name: Region
+          description: 'The geographic area where the data is stored. Acceptable values: US, EMEA. By default, it is set to US.'
+      description: Query all the business units in a specific BIM 360 account.
+      security:
+        - 2-legged: []
+        - 3-legged-implicit: []
+        - 3-legged: []
+      tags:
+        - Business Units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BusinessUnitsRequestPyload'
+components:
+  schemas:
+    Projects:
+      title: Projects
+      x-stoplight:
+        id: ikvjx87zn5n72
+      type: object
+      properties:
+        pagination:
+          type: object
+          description: The pagination object.
+          properties:
+            limit:
+              type: integer
+              description: The number of items per page.
+            offset:
+              type: integer
+              description: The page number that the results begin from.
+            totalResults:
+              type: integer
+              description: The number of items in the response.
+            nextUrl:
+              type: string
+              x-stoplight:
+                id: jcbjfd1jjp2hd
+              description: |-
+                The URL for the next page of records.
+                Max length: 2000
+            previousUrl:
+              type: string
+              x-stoplight:
+                id: 34icscki56svs
+              description: |-
+                The URL for the previous page of records.
+                Max length: 2000
+        results:
+          type: array
+          description: The requested page of projects.
+          items:
+            $ref: '#/components/schemas/Project'
+    Project:
+      title: Project
+      x-stoplight:
+        id: ebkpy57pcvey6
+      type: object
+      properties:
+        id:
+          type: string
+          description: The internally generated ID for the project.
+        name:
+          type: string
+          description: |-
+            The name of the project.
+            Max length: 255
+          x-stoplight:
+            id: 6cf9wq5ozzjck
+        startDate:
+          type: string
+          description: 'The estimated start date for the project, in ISO 8601 format.'
+          x-stoplight:
+            id: qxtctrcqpzdim
+        endDate:
+          type: string
+          x-stoplight:
+            id: 0wy8z5fu7edd3
+          description: 'The estimated end date for the project, in ISO 8601 format.'
+        type:
+          description: The type of the project.
+          x-stoplight:
+            id: 0rmvamrt2vu0p
+          type: string
+        classification:
+          $ref: '#/components/schemas/classification'
+          description: 'The project’s purpose. Possible values: production, template, component, sample'
+          x-stoplight:
+            id: la722kcrq302p
+        projectValue:
+          type: object
+          description: 'The value of the project. When updating the project value, both the value and currency parameters are required.'
+          x-stoplight:
+            id: 7jyuuuw47s1zg
+          properties:
+            value:
+              type: integer
+              x-stoplight:
+                id: uc6040iee54lw
+              description: The estimated value or cost of the project based on the currency specified in the currency field. The default value is 0.
+            currency:
+              type: string
+              x-stoplight:
+                id: 3bhkzguqw0sv3
+              description: 'The currency of the project value for the project. Default value: USD.'
+        status:
+          $ref: '#/components/schemas/status'
+          description: The status of the project.
+          x-stoplight:
+            id: gr9ymnwepgsvy
+        jobNumber:
+          type: string
+          description: |-
+            A job identifier that’s defined for the project by the user. This ID was defined when the project was created.
+            Max length: 100
+        addressLine1:
+          type: string
+          description: |-
+            Address line 1 for the project.
+            Max length: 255
+        addressLine2:
+          type: string
+          x-stoplight:
+            id: 1upgay7epgz9b
+          description: |-
+            Address line 2 for the project.
+            Max length: 255
+        city:
+          type: string
+          x-stoplight:
+            id: 0oc4qp1v0ftdm
+          description: The city in which the project is located.
+        stateOrProvince:
+          type: string
+          x-stoplight:
+            id: ubo3fqfnmgqug
+          description: The state or province in which the project is located. Only valid state/province names and ISO 3166-1 alpha-2 codes is accepted. The provided state or province must exist in the country of the project.
+        postalCode:
+          type: string
+          x-stoplight:
+            id: 5t24tmhaqskus
+          description: The zip or postal code in which the project is located.
+        country:
+          type: string
+          x-stoplight:
+            id: xg4z9ewblj1w5
+          description: The country in which the project is located. Only valid country names and ISO 3166-1 alpha-2 codes is accepted.
+        latitude:
+          type: string
+          x-stoplight:
+            id: qsply44us8h4h
+          description: The latitude of the location of the project.
+        longitude:
+          type: string
+          x-stoplight:
+            id: zp562dse6o7hj
+          description: The longitude of the location of the project.
+        timezone:
+          type: string
+          x-stoplight:
+            id: o53ui6vd71sgp
+          description: The time zone in which the project is located. Note that this field can be NULL.
+        constructionType:
+          type: string
+          x-stoplight:
+            id: f8bnng42rt1bj
+          description: 'The construction type of the project. Following is a list of recommended values; however, any value is accepted.'
+        deliveryMethod:
+          type: string
+          x-stoplight:
+            id: 6bswlp8p3pzsa
+          description: 'The delivery method of the project. Following is a list of recommended values; however, any value is accepted.'
+        contractType:
+          type: string
+          x-stoplight:
+            id: m9xai1gdvbprg
+          description: 'The contract type of the project. Following is a list of recommended values; however, any value is accepted.'
+        currentPhase:
+          type: string
+          x-stoplight:
+            id: 5k6oorhq27hxk
+          description: 'The current phase of the project. Following is a list of recommended values; however, any value is accepted.'
+        businessUnitId:
+          type: string
+          x-stoplight:
+            id: ww05qb8kr01ru
+          description: The ID of the business unit that the project is associated with.
+        lastSignIn:
+          type: string
+          x-stoplight:
+            id: im38ovifkrbyv
+          description: The timestamp of the last time someone signed into the project.
+        imageUrl:
+          type: string
+          x-stoplight:
+            id: 8d45mnflzgs33
+          description: The URL of the project image.
+        thumbnailImageUrl:
+          type: string
+          x-stoplight:
+            id: pscimqfva5dqw
+          description: The URL of the project thumbnail image.
+        createdAt:
+          type: string
+          x-stoplight:
+            id: h4j1z55w3l122
+          description: 'The timestamp when the project was created, in ISO 8601 format.'
+        updatedAt:
+          type: string
+          x-stoplight:
+            id: wxbzhsi71d8hl
+          description: 'The timestamp when the project was last updated, in ISO 8601 format. This reflects only changes to the project fields and not changes to any resources in the project.'
+        memberGroupId:
+          type: string
+          x-stoplight:
+            id: 8v9h1l147em3f
+          description: Not relevant
+        adminGroupId:
+          type: string
+          x-stoplight:
+            id: mc5b6njjbon60
+          description: Not relevant
+        accountId:
+          type: string
+          x-stoplight:
+            id: ngfv3tuq4xk65
+          description: The ID of the account the project is associated with.
+        sheetCount:
+          type: integer
+          x-stoplight:
+            id: r58ypjbag6lil
+          description: The total number of sheets associated with the project.
+        products:
+          type: array
+          x-stoplight:
+            id: 15j7grna78zar
+          description: An array of the product objects associated with the project.
+          items:
+            x-stoplight:
+              id: qv9mwsm0079v3
+            type: string
+        platform:
+          $ref: '#/components/schemas/platform'
+          x-stoplight:
+            id: l2bslup34ygq3
+          description: The APS platform that the project belongs to.
+        companyCount:
+          type: integer
+          x-stoplight:
+            id: hurzujkff3e2j
+          description: The total number of companies associated with the project.
+        memberCount:
+          type: integer
+          x-stoplight:
+            id: 4n7prnedw1mqu
+          description: The total number of members on the project.
+    ProjectPayload:
+      title: ProjectPayload
+      x-stoplight:
+        id: ie1rcbkmjt2yc
+      type: object
+      properties:
+        name:
+          type: string
+          description: |-
+            The name of the project.
+            Max length: 255
+          x-stoplight:
+            id: 6cf9wq5ozzjck
+        startDate:
+          type: string
+          description: 'The estimated start date for the project, in ISO 8601 format.'
+          x-stoplight:
+            id: qxtctrcqpzdim
+        endDate:
+          type: string
+          x-stoplight:
+            id: 0wy8z5fu7edd3
+          description: 'The estimated end date for the project, in ISO 8601 format.'
+        type:
+          description: The type of the project.
+          x-stoplight:
+            id: 0rmvamrt2vu0p
+          type: string
+        classification:
+          $ref: '#/components/schemas/classification'
+          description: 'The project’s purpose. '
+          x-stoplight:
+            id: la722kcrq302p
+        projectValue:
+          type: object
+          description: 'The value of the project. When updating the project value, both the value and currency parameters are required.'
+          x-stoplight:
+            id: 7jyuuuw47s1zg
+          properties:
+            value:
+              type: integer
+              x-stoplight:
+                id: uc6040iee54lw
+              description: The estimated value or cost of the project based on the currency specified in the currency field. The default value is 0.
+            currency:
+              $ref: '#/components/schemas/currency'
+              x-stoplight:
+                id: 3bhkzguqw0sv3
+              description: 'The currency of the project value for the project. Default value: USD.'
+        jobNumber:
+          type: string
+          description: |-
+            A job identifier that’s defined for the project by the user. This ID was defined when the project was created.
+            Max length: 100
+        addressLine1:
+          type: string
+          description: |-
+            Address line 1 for the project.
+            Max length: 255
+        addressLine2:
+          type: string
+          x-stoplight:
+            id: 1upgay7epgz9b
+          description: |-
+            Address line 2 for the project.
+            Max length: 255
+        city:
+          type: string
+          x-stoplight:
+            id: 0oc4qp1v0ftdm
+          description: The city in which the project is located.
+        stateOrProvince:
+          type: string
+          x-stoplight:
+            id: ubo3fqfnmgqug
+          description: The state or province in which the project is located. Only valid state/province names and ISO 3166-1 alpha-2 codes is accepted. The provided state or province must exist in the country of the project.
+        postalCode:
+          type: string
+          x-stoplight:
+            id: 5t24tmhaqskus
+          description: The zip or postal code in which the project is located.
+        country:
+          type: string
+          x-stoplight:
+            id: xg4z9ewblj1w5
+          description: The country in which the project is located. Only valid country names and ISO 3166-1 alpha-2 codes is accepted.
+        latitude:
+          type: string
+          x-stoplight:
+            id: qsply44us8h4h
+          description: The latitude of the location of the project.
+        longitude:
+          type: string
+          x-stoplight:
+            id: zp562dse6o7hj
+          description: The longitude of the location of the project.
+        timezone:
+          $ref: '#/components/schemas/timezone'
+          x-stoplight:
+            id: o53ui6vd71sgp
+          description: The time zone in which the project is located. Note that this field can be NULL.
+        constructionType:
+          type: string
+          x-stoplight:
+            id: f8bnng42rt1bj
+          description: 'The construction type of the project. Following is a list of recommended values; however, any value is accepted.'
+        deliveryMethod:
+          type: string
+          x-stoplight:
+            id: 6bswlp8p3pzsa
+          description: 'The delivery method of the project. Following is a list of recommended values; however, any value is accepted.'
+        contractType:
+          type: string
+          x-stoplight:
+            id: m9xai1gdvbprg
+          description: 'The contract type of the project. Following is a list of recommended values; however, any value is accepted.'
+        currentPhase:
+          type: string
+          x-stoplight:
+            id: 5k6oorhq27hxk
+          description: 'The current phase of the project. Following is a list of recommended values; however, any value is accepted.'
+        businessUnitId:
+          type: string
+          x-stoplight:
+            id: ww05qb8kr01ru
+          description: The ID of the business unit that the project is associated with.
+        sheetCount:
+          type: integer
+          x-stoplight:
+            id: r58ypjbag6lil
+          description: The total number of sheets associated with the project.
+        products:
+          type: array
+          x-stoplight:
+            id: 15j7grna78zar
+          description: An array of the product objects associated with the project.
+          items:
+            x-stoplight:
+              id: qv9mwsm0079v3
+            type: string
+        platform:
+          $ref: '#/components/schemas/platform'
+          x-stoplight:
+            id: l2bslup34ygq3
+          description: 'The APS platform that the project belongs to. Possible values: acc, bim360'
+        companyCount:
+          type: integer
+          x-stoplight:
+            id: hurzujkff3e2j
+          description: The total number of companies associated with the project.
+        memberCount:
+          type: integer
+          x-stoplight:
+            id: 4n7prnedw1mqu
+          description: The total number of members on the project.
+        template:
+          type: object
+          x-stoplight:
+            id: 24muiuk2wr82k
+          description: |-
+            Information about a project in the current user’s account that is configured as a template from which to copy products and settings when creating a new project:
+            If you include this object in a POST accounts/:accountId/projects request, the cloned project’s products and settings will match those of the template project.
+            If you omit this object from a POST accounts/:accountId/projects request, all of the current ACC account’s products are added to the cloned project and activated.
+          properties:
+            projectId:
+              type: string
+              x-stoplight:
+                id: zwze88rqhbow0
+              description: The ID of a project template in the current ACC account from which to clone the new project and copy products and settings.
+            options:
+              type: object
+              x-stoplight:
+                id: wigltykwfys3w
+              description: Information about what to include when cloning a project template.
+              properties:
+                field:
+                  type: object
+                  x-stoplight:
+                    id: jdnmtzcvswyqk
+                  description: Project template options specific to classic field.
+                  properties:
+                    includeCompanies:
+                      type: boolean
+                      x-stoplight:
+                        id: h6w5dse4kw4vu
+                      description: |-
+                        Indicates whether to include company data when copying from the project template.
+                        true: Include company data.
+                        false: Exclude company data.
+                    includeLocations:
+                      type: boolean
+                      x-stoplight:
+                        id: zrg9252udrk4x
+                      description: |-
+                        Indicates whether to include location data when copying from the template project.
+                        true: Include location data.
+                        false: Exclude location data.
+          required:
+            - projectId
+      required:
+        - name
+        - type
+    ProjectPatchResponse:
+      title: ProjectPatchResponse
+      x-stoplight:
+        id: g4k3if9lta3pg
+      type: object
+      properties:
+        id:
+          type: string
+          description: Project ID
+        account_id:
+          type: string
+          x-stoplight:
+            id: e67zvdyuagrvb
+          description: Account ID
+        name:
+          type: string
+          x-stoplight:
+            id: dmzvvk6gp4fvg
+          description: Name of the project
+        start_date:
+          type: string
+          x-stoplight:
+            id: xn0vpzsk6nrpn
+          description: |-
+            The starting date of a project; must be earlier than end_date
+            Format: YYYY-MM-DD
+        end_date:
+          type: string
+          x-stoplight:
+            id: 8k65nul995k5g
+          description: |-
+            The ending date of a project; must be later than start_date
+            Format: YYYY-MM-DD
+        project_type:
+          type: string
+          x-stoplight:
+            id: 0ougx4e12wc5e
+          description: The type of project; accepts preconfigured and customized project types
+        value:
+          type: number
+          x-stoplight:
+            id: 3gfeukdzeddnr
+          description: Monetary value of the project
+        currency:
+          type: string
+          x-stoplight:
+            id: e1jzwyjpobyt8
+          description: Currency for project value
+        status:
+          $ref: '#/components/schemas/projectStatus'
+          x-stoplight:
+            id: gruqhoco7k1hr
+          description: The status of project.
+        job_number:
+          type: string
+          x-stoplight:
+            id: x97wzdzwxscc8
+          description: Project job number to connect a BIM 360 project to project or job in a financial or ERP system.
+        address_line_1:
+          type: string
+          x-stoplight:
+            id: be7zse4sz643m
+          description: Project address line 1
+        address_line_2:
+          type: string
+          x-stoplight:
+            id: unu5zecux1alc
+          description: Project address line 2
+        city:
+          type: string
+          x-stoplight:
+            id: mcn6w0lvgnp20
+          description: City in which project is located
+        state_or_province:
+          type: string
+          x-stoplight:
+            id: w39x7lnnh9myp
+          description: State or province in which project is located
+        postal_code:
+          type: string
+          x-stoplight:
+            id: owsyshcr8hvna
+          description: Postal code for the project location
+        country:
+          type: string
+          x-stoplight:
+            id: 8p08o8arqn17l
+          description: Country for this project
+        business_unit_id:
+          type: string
+          x-stoplight:
+            id: 17xu7kyhn7del
+          description: The business unit ID of this project
+        timezone:
+          type: string
+          x-stoplight:
+            id: qs32hyvg8ajfy
+          description: Time zone for this project
+        language:
+          $ref: '#/components/schemas/language'
+          x-stoplight:
+            id: g6dvm8dmqd5yw
+          description: Language of the project; applicable to the BIM 360 Field service only
+        construction_type:
+          $ref: '#/components/schemas/construction_type'
+          x-stoplight:
+            id: beot2pj6n3azw
+          description: Type of construction
+        contract_type:
+          $ref: '#/components/schemas/contract_type'
+          x-stoplight:
+            id: ovt9kdgv1cqxh
+          description: Contract Type for your project
+        last_sign_in:
+          type: string
+          x-stoplight:
+            id: 10g0wn1qosciu
+          description: 'Timestamp of the last sign in, YYYY-MM-DDThh:mm:ss.sssZ format'
+    Company:
+      title: Company
+      x-stoplight:
+        id: a07ikbbdxen99
+      type: object
+      properties:
+        id:
+          type: string
+          description: Company ID
+        account_id:
+          type: string
+          x-stoplight:
+            id: p5xb64wnh4wmx
+          description: Account ID
+        name:
+          type: string
+          x-stoplight:
+            id: iet5cvhxxlpk0
+          description: Company name should be unique under an account
+        trade:
+          type: string
+          x-stoplight:
+            id: 1b2guw2drwxjr
+          description: Trade type based on specialization
+        address_line_1:
+          type: string
+          x-stoplight:
+            id: 12voppe6n4dem
+          description: Company address line 1
+        address_line_2:
+          type: string
+          x-stoplight:
+            id: ovz2wunnvpu7r
+          description: Company address line 2
+        city:
+          type: string
+          x-stoplight:
+            id: cxd0ahqxpo1en
+          description: City in which company is located
+        state_or_province:
+          type: string
+          x-stoplight:
+            id: 3z6lmdqunni69
+          description: State or province in which company is located
+        postal_code:
+          type: string
+          x-stoplight:
+            id: mrqr2ey51mfag
+          description: Postal code for the company location
+        country:
+          type: string
+          x-stoplight:
+            id: q8j06kajtg0v8
+          description: Country for this company
+        phone:
+          type: string
+          x-stoplight:
+            id: x5siwgk3npdvx
+          description: Business phone number for the company
+        website_url:
+          type: string
+          x-stoplight:
+            id: lubzf7q51z7o8
+          description: Company website
+        description:
+          type: string
+          x-stoplight:
+            id: i6e14q3h6b0sx
+          description: Short description or overview for company
+        erp_id:
+          type: string
+          x-stoplight:
+            id: jz2sci73ene74
+          description: Used to associate a company in BIM 360 with the company data in an ERP system
+        tax_id:
+          type: string
+          x-stoplight:
+            id: k6ponb7ozqs5j
+          description: Used to associate a company in BIM 360 with the company data from public and industry sources
+    CompanyImportResponse:
+      title: CompanyImportResponse
+      x-stoplight:
+        id: w1u6pqi8dlrys
+      type: object
+      properties:
+        success:
+          type: integer
+          x-stoplight:
+            id: vfh38q2zhm7vr
+          description: Import success company count
+        failure:
+          type: integer
+          x-stoplight:
+            id: wbnrw0ceazwkh
+          description: Import failure company count
+        success_items:
+          type: array
+          x-stoplight:
+            id: b91r3bdiu4916
+          description: Array of company objects that were successfully imported
+          items:
+            $ref: '#/components/schemas/Company'
+            x-stoplight:
+              id: yreisjgu8c84e
+        failure_items:
+          type: array
+          x-stoplight:
+            id: spdgokc6tgfr3
+          description: 'Array of company objects that failed to import, along with content and error information'
+          items:
+            $ref: '#/components/schemas/Company'
+            x-stoplight:
+              id: h3qbrhrr4tpef
+    CompanyPayload:
+      title: CompanyPayload
+      x-stoplight:
+        id: z8zjhylvl5py0
+      type: object
+      properties:
+        name:
+          type: string
+          x-stoplight:
+            id: iet5cvhxxlpk0
+          description: Company name should be unique under an account
+        trade:
+          $ref: '#/components/schemas/trade'
+          x-stoplight:
+            id: 1b2guw2drwxjr
+          description: Trade type based on specialization
+        address_line_1:
+          type: string
+          x-stoplight:
+            id: 12voppe6n4dem
+          description: Company address line 1
+        address_line_2:
+          type: string
+          x-stoplight:
+            id: ovz2wunnvpu7r
+          description: Company address line 2
+        city:
+          type: string
+          x-stoplight:
+            id: cxd0ahqxpo1en
+          description: City in which company is located
+        state_or_province:
+          type: string
+          x-stoplight:
+            id: 3z6lmdqunni69
+          description: State or province in which company is located
+        postal_code:
+          type: string
+          x-stoplight:
+            id: mrqr2ey51mfag
+          description: Postal code for the company location
+        country:
+          type: string
+          x-stoplight:
+            id: q8j06kajtg0v8
+          description: Country for this company
+        phone:
+          type: string
+          x-stoplight:
+            id: x5siwgk3npdvx
+          description: Business phone number for the company
+        website_url:
+          type: string
+          x-stoplight:
+            id: lubzf7q51z7o8
+          description: Company website
+        description:
+          type: string
+          x-stoplight:
+            id: i6e14q3h6b0sx
+          description: Short description or overview for company
+        erp_id:
+          type: string
+          x-stoplight:
+            id: jz2sci73ene74
+          description: Used to associate a company in BIM 360 with the company data in an ERP system
+        tax_id:
+          type: string
+          x-stoplight:
+            id: k6ponb7ozqs5j
+          description: Used to associate a company in BIM 360 with the company data from public and industry sources
+      required:
+        - name
+        - trade
+    CompanyPatchPayload:
+      title: CompanyPatchPayload
+      x-stoplight:
+        id: 3w00n26opiju3
+      type: object
+      properties:
+        name:
+          type: string
+          x-stoplight:
+            id: iet5cvhxxlpk0
+          description: Company name should be unique under an account
+        trade:
+          $ref: '#/components/schemas/trade'
+          x-stoplight:
+            id: 1b2guw2drwxjr
+          description: Trade type based on specialization
+        address_line_1:
+          type: string
+          x-stoplight:
+            id: 12voppe6n4dem
+          description: Company address line 1
+        address_line_2:
+          type: string
+          x-stoplight:
+            id: ovz2wunnvpu7r
+          description: Company address line 2
+        city:
+          type: string
+          x-stoplight:
+            id: cxd0ahqxpo1en
+          description: City in which company is located
+        state_or_province:
+          type: string
+          x-stoplight:
+            id: 3z6lmdqunni69
+          description: State or province in which company is located
+        postal_code:
+          type: string
+          x-stoplight:
+            id: mrqr2ey51mfag
+          description: Postal code for the company location
+        country:
+          type: string
+          x-stoplight:
+            id: q8j06kajtg0v8
+          description: Country for this company
+        phone:
+          type: string
+          x-stoplight:
+            id: x5siwgk3npdvx
+          description: Business phone number for the company
+        website_url:
+          type: string
+          x-stoplight:
+            id: lubzf7q51z7o8
+          description: Company website
+        description:
+          type: string
+          x-stoplight:
+            id: i6e14q3h6b0sx
+          description: Short description or overview for company
+        erp_id:
+          type: string
+          x-stoplight:
+            id: jz2sci73ene74
+          description: Used to associate a company in BIM 360 with the company data in an ERP system
+        tax_id:
+          type: string
+          x-stoplight:
+            id: k6ponb7ozqs5j
+          description: Used to associate a company in BIM 360 with the company data from public and industry sources
+    CompanyResponse:
+      title: Companies
+      x-stoplight:
+        id: 1ltchlash196q
+      type: object
+      properties:
+        id:
+          type: string
+          description: Company ID
+        account_id:
+          type: string
+          x-stoplight:
+            id: p5xb64wnh4wmx
+          description: Account ID
+        project_id:
+          type: string
+          x-stoplight:
+            id: p5xb64wnh4wmx
+          description: Project ID
+        name:
+          type: string
+          x-stoplight:
+            id: iet5cvhxxlpk0
+          description: Company name should be unique under an account
+        trade:
+          type: string
+          x-stoplight:
+            id: 1b2guw2drwxjr
+          description: Trade type based on specialization
+        address_line_1:
+          type: string
+          x-stoplight:
+            id: 12voppe6n4dem
+          description: Company address line 1
+        address_line_2:
+          type: string
+          x-stoplight:
+            id: ovz2wunnvpu7r
+          description: Company address line 2
+        city:
+          type: string
+          x-stoplight:
+            id: cxd0ahqxpo1en
+          description: City in which company is located
+        state_or_province:
+          type: string
+          x-stoplight:
+            id: 3z6lmdqunni69
+          description: State or province in which company is located
+        postal_code:
+          type: string
+          x-stoplight:
+            id: mrqr2ey51mfag
+          description: Postal code for the company location
+        country:
+          type: string
+          x-stoplight:
+            id: q8j06kajtg0v8
+          description: Country for this company
+        phone:
+          type: string
+          x-stoplight:
+            id: x5siwgk3npdvx
+          description: Business phone number for the company
+        website_url:
+          type: string
+          x-stoplight:
+            id: lubzf7q51z7o8
+          description: Company website
+        description:
+          type: string
+          x-stoplight:
+            id: i6e14q3h6b0sx
+          description: Short description or overview for company
+        erp_id:
+          type: string
+          x-stoplight:
+            id: jz2sci73ene74
+          description: Used to associate a company in BIM 360 with the company data in an ERP system
+        tax_id:
+          type: string
+          x-stoplight:
+            id: k6ponb7ozqs5j
+          description: Used to associate a company in BIM 360 with the company data from public and industry sources
+        member_group_id:
+          type: string
+          x-stoplight:
+            id: dgnf1q93x7ydp
+          description: The Autodesk ID of the company; used to identify which company is assigned to an RFI or Issue.
+    classification:
+      title: classification
+      x-stoplight:
+        id: kiltb9wsm9iye
+      type: string
+      enum:
+        - production
+        - template
+        - component
+        - sample
+    status:
+      title: status
+      x-stoplight:
+        id: 7imcqgahx8744
+      type: string
+      enum:
+        - active
+        - pending
+        - archived
+        - suspended
+    status_internal:
+      title: status_internal
+      type: array
+      items:
+        $ref: '#/components/schemas/status'
+        x-stoplight:
+          id: 3sxoqp01jo0t2
+    fields:
+      title: fields
+      x-stoplight:
+        id: 2u11626lmta32
+      type: string
+      enum:
+        - accountId
+        - addressLine1
+        - addressLine2
+        - businessUnitId
+        - city
+        - companyCount
+        - constructionType
+        - country
+        - createdAt
+        - deliveryMethod
+        - endDate
+        - imageUrl
+        - jobNumber
+        - lastSignIn
+        - latitude
+        - longitude
+        - memberCount
+        - name
+        - platform
+        - postalCode
+        - products
+        - projectValue
+        - sheetCount
+        - startDate
+        - stateOrProvince
+        - status
+        - thumbnailImageUrl
+        - timezone
+        - type
+        - updatedAt
+    fields_internal:
+      title: fields_internal
+      x-stoplight:
+        id: gllpnqude53mp
+      type: array
+      items:
+        $ref: '#/components/schemas/fields'
+        x-stoplight:
+          id: eak8q4id1p2i3
+    platform:
+      title: platform
+      x-stoplight:
+        id: w4j4h1zy6fji2
+      type: string
+      enum:
+        - acc
+        - bim360
+    language:
+      title: language
+      x-stoplight:
+        id: m9c5ixm1875gr
+      type: string
+      enum:
+        - en
+        - de
+    construction_type:
+      title: construction_type
+      x-stoplight:
+        id: 0e4byusitc32v
+      type: string
+      enum:
+        - New Construction
+        - Renovation
+    contract_type:
+      title: contract_type
+      x-stoplight:
+        id: wb8va4c1arjji
+      type: string
+      enum:
+        - Construction Management (CM) at Risk
+        - Design-Bid
+        - Design-Bid-Build
+        - Design-Build-Operate
+        - IPD
+    projectStatus:
+      title: projectStatus
+      x-stoplight:
+        id: 4cpj7zterxa7i
+      type: string
+      enum:
+        - active
+        - pending
+        - inactive
+        - archived
+    User:
+      title: User
+      x-stoplight:
+        id: fx3z9ao4dnpxy
+      type: object
+      properties:
+        id:
+          type: string
+          description: BIM 360 user ID
+        account_id:
+          type: string
+          description: Account ID
+        role:
+          $ref: '#/components/schemas/UserRole'
+          description: The role of the user in the account. New user should be account_user only.
+        status:
+          $ref: '#/components/schemas/userStatus'
+          description: Status of the user in the system. A new account user is always not_invited.
+        company_id:
+          type: string
+          description: The user’s default company ID in BIM 360
+        company_name:
+          type: string
+          description: The name of the user’s default company name in BIM 360
+        last_sign_in:
+          type: string
+          description: 'Timestamp of the last sign in, YYYY-MM-DDThh:mm:ss.sssZ format'
+        email:
+          type: string
+          description: 'User’s email '
+        name:
+          type: string
+          description: Default display name
+        nickname:
+          type: string
+          description: Nick name for user
+        first_name:
+          type: string
+          description: User’s first name
+        last_name:
+          type: string
+          description: User’s last name
+        uid:
+          type: string
+          description: User’s Autodesk ID
+        image_url:
+          type: string
+          description: URL for user’s profile image
+        address_line_1:
+          type: string
+          description: User’s address line 1
+        address_line_2:
+          type: string
+          description: User’s address line 2
+        city:
+          type: string
+          description: City in which user is located
+        state_or_province:
+          type: string
+          description: State or province in which user is located
+        postal_code:
+          type: string
+          description: Postal code for the user’s location
+        country:
+          type: string
+          description: Country for this user
+        phone:
+          type: string
+          description: Contact phone number for the user
+        company:
+          type: string
+          description: Company information from the Autodesk user profile
+        job_title:
+          type: string
+          description: User’s job title
+        industry:
+          type: string
+          description: Industry information for user
+        about_me:
+          type: string
+          description: Short description about the user
+        created_at:
+          type: string
+          description: 'YYYY-MM-DDThh:mm:ss.sssZ format'
+        updated_at:
+          type: string
+          description: 'YYYY-MM-DDThh:mm:ss.sssZ format'
+    UserPayload:
+      title: UserPayload
+      x-stoplight:
+        id: xilzd946u5je1
+      type: object
+      properties:
+        company_id:
+          type: string
+          description: The user’s default company ID in BIM 360
+        email:
+          type: string
+          description: 'User’s email '
+        name:
+          type: string
+          description: Default display name
+        nickname:
+          type: string
+          description: Nick name for user
+        first_name:
+          type: string
+          description: User’s first name
+        last_name:
+          type: string
+          description: User’s last name
+        image_url:
+          type: string
+          description: URL for user’s profile image
+        address_line_1:
+          type: string
+          description: User’s address line 1
+        address_line_2:
+          type: string
+          description: User’s address line 2
+        city:
+          type: string
+          description: City in which user is located
+        state_or_province:
+          type: string
+          description: State or province in which user is located
+        postal_code:
+          type: string
+          description: Postal code for the user’s location
+        country:
+          type: string
+          description: Country for this user
+        phone:
+          type: string
+          description: Contact phone number for the user
+        company:
+          type: string
+          description: Company information from the Autodesk user profile
+        job_title:
+          type: string
+          description: User’s job title
+        industry:
+          type: string
+          description: Industry information for user
+        about_me:
+          type: string
+          description: Short description about the user
+      required:
+        - email
+    UserImportResponse:
+      title: UserImportResponse
+      x-stoplight:
+        id: t8o0t7wpee7l3
+      type: object
+      properties:
+        success:
+          type: integer
+          x-stoplight:
+            id: vfh38q2zhm7vr
+          description: Import success user count
+        failure:
+          type: integer
+          x-stoplight:
+            id: wbnrw0ceazwkh
+          description: Import failure user count
+        success_items:
+          type: array
+          x-stoplight:
+            id: b91r3bdiu4916
+          description: Array of user objects that were successfully imported
+          items:
+            $ref: '#/components/schemas/User'
+            x-stoplight:
+              id: yreisjgu8c84e
+        failure_items:
+          type: array
+          x-stoplight:
+            id: spdgokc6tgfr3
+          description: 'Array of user objects that failed to import, along with content and error information'
+          items:
+            $ref: '#/components/schemas/User'
+            x-stoplight:
+              id: h3qbrhrr4tpef
+    UserPatchPayload:
+      title: UserPatchPayload
+      x-stoplight:
+        id: xw8ty4k0es17i
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/userPatchStatus'
+          x-stoplight:
+            id: n6e75bp9t1fl3
+          description: New status to set the user to (only if not currently pending or not_invited)
+        company_id:
+          type: string
+          x-stoplight:
+            id: f3n7hx18s62dv
+          description: The user’s default company ID in BIM 360
+    userStatus:
+      title: userStatus
+      x-stoplight:
+        id: lg4rh43tkpfhn
+      type: string
+      enum:
+        - active
+        - inactive
+        - pending
+        - not_invited
+    userPatchStatus:
+      title: userPatchStatus
+      x-stoplight:
+        id: vy3l7dr8yvvt4
+      type: string
+      enum:
+        - active
+        - inactive
+    UserRole:
+      title: UserRole
+      x-stoplight:
+        id: qabkqjylp1bz6
+      type: string
+      enum:
+        - account_admin
+        - account_user
+        - project_admin
+    ProjectUsers:
+      title: ProjectUsers
+      type: object
+      properties:
+        pagination:
+          type: object
+          description: The pagination object.
+          properties:
+            limit:
+              type: integer
+              description: The number of items per page.
+            offset:
+              type: integer
+              description: The page number that the results begin from.
+            totalResults:
+              type: integer
+              description: The number of items in the response.
+            nextUrl:
+              type: string
+              x-stoplight:
+                id: jcbjfd1jjp2hd
+              description: |-
+                The URL for the next page of records.
+                Max length: 2000
+            previousUrl:
+              type: string
+              x-stoplight:
+                id: 34icscki56svs
+              description: |-
+                The URL for the previous page of records.
+                Max length: 2000
+        results:
+          type: array
+          description: The requested page of project users.
+          items:
+            $ref: '#/components/schemas/ProjectUser'
+    ProjectUser:
+      title: ProjectUser
+      x-stoplight:
+        id: yr7m0t04g7srf
+      type: object
+      properties:
+        email:
+          type: string
+          x-stoplight:
+            id: 4l126as65h226
+          description: |-
+            The email of the user.
+            Max length: 255
+        id:
+          type: string
+          description: The ACC ID of the user.
+        name:
+          type: string
+          description: The full name of the user.
+        firstName:
+          type: string
+          description: |-
+            The user’s first name. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        lastName:
+          type: string
+          description: |-
+            The user’s last name. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        autodeskId:
+          type: string
+          description: |-
+            The ID of the user’s Autodesk profile.
+            Max length: 255
+        analyticsId:
+          type: string
+          description: Not relevant
+        addressLine1:
+          type: string
+          description: |-
+            The user’s address line 1. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        addressLine2:
+          type: string
+          description: |-
+            The user’s address line 2. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        city:
+          type: string
+          description: |-
+            The User’s city. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        stateOrProvince:
+          type: string
+          description: |-
+            The state or province of the user. The accepted values here change depending on which country is provided. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        postalCode:
+          type: string
+          description: |-
+            The zip or postal code of the user. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        country:
+          type: string
+          description: |-
+            The user’s country. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        imageUrl:
+          type: string
+          description: |-
+            The URL of the user’s avatar. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        phone:
+          description: The user’s phone number. This data syncs from the user’s Autodesk profile.
+          type: object
+          properties:
+            number:
+              type: string
+              x-stoplight:
+                id: 9jn34var2c9nu
+              description: User’s phone number
+            phoneType:
+              type: string
+              x-stoplight:
+                id: i4870b3euojc3
+              description: The user’s phone type.
+            extension:
+              type: string
+              x-stoplight:
+                id: wz1h6mlxohgqp
+              description: User’s phone extension.
+        jobTitle:
+          type: string
+          description: |-
+            The user’s job title. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        industry:
+          type: string
+          description: |-
+            The industry the user works in. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        aboutMe:
+          type: string
+          description: |-
+            A short bio about the user. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        accessLevels:
+          description: Flags that identify a returned user’s access levels in the account or project.
+          type: object
+          properties:
+            accountAdmin:
+              type: boolean
+              x-stoplight:
+                id: uit3quf92pt7c
+              description: Indicates whether the user is an account administrator for the account.
+            projectAdmin:
+              type: boolean
+              x-stoplight:
+                id: 19r2u8did6fgi
+              description: Indicates whether the user is a project administrator for the project.
+            executive:
+              type: boolean
+              x-stoplight:
+                id: vwasqda2gcmm0
+              description: Indicates whether the user is an executive in the account.
+        addedOn:
+          type: string
+          description: The timestamp when the user was first given access to any product on the project.
+        updatedAt:
+          type: string
+          description: 'The timestamp when the project user was last updated, in ISO 8601 format.'
+        companyId:
+          type: string
+          description: 'The ID of the company that the user is representing in the project. To obtain a list of all company IDs associated with a project, call GET projects/:projectId/companies.'
+        companyName:
+          type: string
+          description: |-
+            The name of the company to which the user belongs.
+            Max length: 255
+        roleIds:
+          type: string
+          description: A list of IDs of the roles that the user belongs to in the project.
+        roles:
+          description: A list of the role IDs and names that are associated with the user in the project.
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                x-stoplight:
+                  id: k4i4pyorywmgu
+                description: The ID of a role that the user belongs to in the project.
+              name:
+                type: string
+                x-stoplight:
+                  id: 06k3jj0ewbula
+                description: The name of a role that the user belongs to in the project.
+        status:
+          type: string
+          description: 'The status of the user in the project. A pending user could be waiting for their products to activate, or the user hasn’t accepted an email to create an account with Autodesk.'
+        products:
+          type: array
+          items:
+            type: object
+            x-stoplight:
+              id: hasrcy0zzx3bm
+            properties:
+              key:
+                type: string
+                x-stoplight:
+                  id: wkmu7n556lqbw
+                description: A keyword that identifies the product.
+              access:
+                type: string
+                x-stoplight:
+                  id: 2hg7ktpbupezj
+                description: The user’s type of access to the product identified by key.
+    ProjectUserPayload:
+      title: ProjectUserPayload
+      x-stoplight:
+        id: d7oxg934a3kf6
+      type: object
+      properties:
+        email:
+          type: string
+          x-stoplight:
+            id: bhz1gjhsjijd7
+          description: |-
+            The email address of the user.
+            Max length: 255
+        companyId:
+          type: string
+          x-stoplight:
+            id: qjr3ljiek0a25
+          description: 'The ID of the company that the user is representing in the project. To obtain a list of all company IDs associated with a project, call GET projects/:projectId/companies.'
+        roleIds:
+          type: array
+          x-stoplight:
+            id: k3j3e6w9zd7c3
+          description: A list of IDs of the roles that the user belongs to in the project.
+          items:
+            x-stoplight:
+              id: ngp6d387c9q14
+            type: string
+        products:
+          type: array
+          items:
+            type: object
+            required:
+              - key
+              - access
+            properties:
+              key:
+                $ref: '#/components/schemas/productKeys'
+                x-stoplight:
+                  id: wkmu7n556lqbw
+                description: A keyword that identifies the product.
+              access:
+                $ref: '#/components/schemas/productAccess'
+                x-stoplight:
+                  id: 2hg7ktpbupezj
+                description: The user’s type of access to the product identified by key.
+      required:
+        - email
+        - products
+    ProjectUserResponse:
+      title: ProjectUserResponse
+      x-stoplight:
+        id: yiq5880t5rnsf
+      type: object
+      properties:
+        email:
+          type: string
+          x-stoplight:
+            id: 4l126as65h226
+          description: |-
+            The email of the user.
+            Max length: 255
+        id:
+          type: string
+          description: The ACC ID of the user.
+        name:
+          type: string
+          description: The full name of the user.
+        firstName:
+          type: string
+          description: |-
+            The user’s first name. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        lastName:
+          type: string
+          description: |-
+            The user’s last name. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        autodeskId:
+          type: string
+          description: |-
+            The ID of the user’s Autodesk profile.
+            Max length: 255
+        analyticsId:
+          type: string
+          description: Not relevant
+        addressLine1:
+          type: string
+          description: |-
+            The user’s address line 1. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        addressLine2:
+          type: string
+          description: |-
+            The user’s address line 2. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        city:
+          type: string
+          description: |-
+            The User’s city. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        stateOrProvince:
+          type: string
+          description: |-
+            The state or province of the user. The accepted values here change depending on which country is provided. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        postalCode:
+          type: string
+          description: |-
+            The zip or postal code of the user. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        country:
+          type: string
+          description: |-
+            The user’s country. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        imageUrl:
+          type: string
+          description: |-
+            The URL of the user’s avatar. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        phone:
+          description: The user’s phone number. This data syncs from the user’s Autodesk profile.
+          type: object
+          properties:
+            number:
+              type: string
+              x-stoplight:
+                id: 9jn34var2c9nu
+              description: User’s phone number
+            phoneType:
+              type: string
+              x-stoplight:
+                id: i4870b3euojc3
+              description: The user’s phone type.
+            extension:
+              type: string
+              x-stoplight:
+                id: wz1h6mlxohgqp
+              description: User’s phone extension.
+        jobTitle:
+          type: string
+          description: |-
+            The user’s job title. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        industry:
+          type: string
+          description: |-
+            The industry the user works in. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        aboutMe:
+          type: string
+          description: |-
+            A short bio about the user. This data syncs from the user’s Autodesk profile.
+            Max length: 255
+        accessLevels:
+          description: Flags that identify a returned user’s access levels in the account or project.
+          type: object
+          properties:
+            accountAdmin:
+              type: boolean
+              x-stoplight:
+                id: uit3quf92pt7c
+              description: Indicates whether the user is an account administrator for the account.
+            projectAdmin:
+              type: boolean
+              x-stoplight:
+                id: 19r2u8did6fgi
+              description: Indicates whether the user is a project administrator for the project.
+            executive:
+              type: boolean
+              x-stoplight:
+                id: vwasqda2gcmm0
+              description: Indicates whether the user is an executive in the account.
+        addedOn:
+          type: string
+          description: The timestamp when the user was first given access to any product on the project.
+        updatedAt:
+          type: string
+          description: 'The timestamp when the project user was last updated, in ISO 8601 format.'
+        companyId:
+          type: string
+          description: 'The ID of the company that the user is representing in the project. To obtain a list of all company IDs associated with a project, call GET projects/:projectId/companies.'
+        companyName:
+          type: string
+          description: |-
+            The name of the company to which the user belongs.
+            Max length: 255
+        roleIds:
+          type: string
+          description: A list of IDs of the roles that the user belongs to in the project.
+        roles:
+          description: A list of the role IDs and names that are associated with the user in the project.
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                x-stoplight:
+                  id: k4i4pyorywmgu
+                description: The ID of a role that the user belongs to in the project.
+              name:
+                type: string
+                x-stoplight:
+                  id: 06k3jj0ewbula
+                description: The name of a role that the user belongs to in the project.
+        status:
+          type: string
+          description: 'The status of the user in the project. A pending user could be waiting for their products to activate, or the user hasn’t accepted an email to create an account with Autodesk.'
+        products:
+          type: array
+          items:
+            type: object
+            x-stoplight:
+              id: hasrcy0zzx3bm
+            properties:
+              key:
+                type: string
+                x-stoplight:
+                  id: wkmu7n556lqbw
+                description: A keyword that identifies the product.
+              access:
+                type: string
+                x-stoplight:
+                  id: 2hg7ktpbupezj
+                description: The user’s type of access to the product identified by key.
+        jobId:
+          type: string
+          x-stoplight:
+            id: sykfft9q3jzuo
+          description: Not relevant - we don’t currently support this field.
+    ProjectUsersImportPayload:
+      title: ProjectUsersImportPayload
+      x-stoplight:
+        id: 73uitwejlqc1t
+      type: object
+      properties:
+        users:
+          description: User data to import.
+          type: array
+          items:
+            type: object
+            properties:
+              firstName:
+                type: string
+                description: |-
+                  The first name of the user.
+                  Max length: 255
+              lastName:
+                type: string
+                description: |-
+                  The last name of the user.
+                  Max length: 255
+              email:
+                type: string
+                x-stoplight:
+                  id: bhz1gjhsjijd7
+                description: |-
+                  The email address of the user.
+                  Max length: 255
+              companyId:
+                type: string
+                x-stoplight:
+                  id: qjr3ljiek0a25
+                description: 'The ID of the company that the user is representing in the project. To obtain a list of all company IDs associated with a project, call GET projects/:projectId/companies.'
+              roleIds:
+                type: array
+                x-stoplight:
+                  id: k3j3e6w9zd7c3
+                description: A list of IDs of the roles that the user belongs to in the project.
+                items:
+                  x-stoplight:
+                    id: ngp6d387c9q14
+                  type: string
+              products:
+                type: array
+                items:
+                  type: object
+                  x-stoplight:
+                    id: hasrcy0zzx3bm
+                  properties:
+                    key:
+                      $ref: '#/components/schemas/productKeys'
+                      x-stoplight:
+                        id: wkmu7n556lqbw
+                      description: A keyword that identifies the product.
+                    access:
+                      $ref: '#/components/schemas/productAccess'
+                      x-stoplight:
+                        id: 2hg7ktpbupezj
+                      description: The user’s type of access to the product identified by key.
+                  required:
+                    - key
+                    - access
+            required:
+              - email
+              - products
+    ProjectUsersImportResponse:
+      title: ProjectUsersImportResponse
+      x-stoplight:
+        id: 4vlcsf9vutqs8
+      type: object
+      properties:
+        jobId:
+          type: string
+          x-stoplight:
+            id: m7smt5frycgog
+          description: |-
+            We don’t currently support this field, but expect to in a future release.
+            If the response returns jobId with a valid UUID value, the user import operation was successful.
+    ProjectUsersUpdatePayload:
+      title: ProjectUsersUpdatePayload
+      x-stoplight:
+        id: 7hpr38vcbofx7
+      type: object
+      properties:
+        email:
+          type: string
+          x-stoplight:
+            id: bhz1gjhsjijd7
+          description: |-
+            The email address of the user.
+            Max length: 255
+        companyId:
+          type: string
+          x-stoplight:
+            id: qjr3ljiek0a25
+          description: 'The ID of the company that the user is representing in the project. To obtain a list of all company IDs associated with a project, call GET projects/:projectId/companies.'
+        roleIds:
+          type: array
+          x-stoplight:
+            id: k3j3e6w9zd7c3
+          description: A list of IDs of the roles that the user belongs to in the project.
+          items:
+            x-stoplight:
+              id: ngp6d387c9q14
+            type: string
+        products:
+          type: array
+          items:
+            type: object
+            x-stoplight:
+              id: hasrcy0zzx3bm
+            properties:
+              key:
+                $ref: '#/components/schemas/productKeys'
+                x-stoplight:
+                  id: wkmu7n556lqbw
+                description: A keyword that identifies the product.
+              access:
+                $ref: '#/components/schemas/productAccess'
+                x-stoplight:
+                  id: 2hg7ktpbupezj
+                description: The user’s type of access to the product identified by key.
+          required:
+            - key
+            - access
+    BusinessUnit:
+      title: BusinessUnit
+      x-stoplight:
+        id: 2g2vpfiwr1evd
+      type: object
+      properties:
+        id:
+          type: string
+          description: Business unit ID
+        account_id:
+          type: string
+          x-stoplight:
+            id: 87d5kevscjst5
+          description: Account ID
+        parent_id:
+          type: string
+          x-stoplight:
+            id: ripvdy2jdxt5h
+          description: |-
+            The ID of the parent business unit;
+            used to configure the tree structure of business units
+        name:
+          type: string
+          x-stoplight:
+            id: e5y59vjyh9u3g
+          description: |
+            The name of the business unit
+        path:
+          type: string
+          x-stoplight:
+            id: y2vcp5y80gjjj
+          description: The path of the business unit in the tree structure
+        description:
+          type: string
+          x-stoplight:
+            id: wywguzh955t9m
+          description: The description of the business unit
+        created_at:
+          type: string
+          x-stoplight:
+            id: 4bta8t8vaq96a
+        updated_at:
+          type: string
+          x-stoplight:
+            id: epd0mv6uik60l
+    BusinessUnitsResponse:
+      title: BusinessUnitsResponse
+      x-stoplight:
+        id: bje738qyuuz2v
+      type: object
+      properties:
+        business_units:
+          type: array
+          x-stoplight:
+            id: n5utlu9b7jz16
+          items:
+            $ref: '#/components/schemas/BusinessUnit'
+            x-stoplight:
+              id: 2sl170itvk70g
+    BusinessUnitsRequestPyload:
+      title: BusinessUnitsRequestPyload
+      x-stoplight:
+        id: vg238uncrewqq
+      type: object
+      properties:
+        business_units:
+          type: array
+          x-stoplight:
+            id: 9dce24721l40s
+          items:
+            $ref: '#/components/schemas/BusinessUnitsRequest'
+            x-stoplight:
+              id: xmd2c1g2ax76z
+    BusinessUnitsRequest:
+      title: BusinessUnitsRequest
+      x-stoplight:
+        id: ofwz7wxle2i79
+      type: object
+      properties:
+        id:
+          type: string
+          x-stoplight:
+            id: 1t6r79la6n8xx
+          description: |-
+            Business unit ID
+
+            If specified and already existing, the existing business unit will be replaced
+            with the provided attributes.
+
+            If specified and not already existing, a new business unit will be created with the id.
+
+            If unspecified, a new business unit will be created with a server-generated id.
+        parent_id:
+          type: string
+          x-stoplight:
+            id: vaqvh4gbvaq4i
+          description: |-
+            The ID of the parent business unit
+
+            Note that an entire business unit hierarchy can be created by manually specifying the id
+            attribute for each business unit and using it as appropriate in other parent_id
+            attributes.
+        name:
+          type: string
+          x-stoplight:
+            id: vp8m48lup86mn
+          description: The name of the business unit
+        description:
+          type: string
+          x-stoplight:
+            id: gjwcknccphtzc
+          description: The description of the business unit
+      required:
+        - name
+    Region:
+      title: Region
+      x-stoplight:
+        id: 5rz8jxdpgo4zq
+      type: string
+      enum:
+        - US
+        - EMEA
+        - APAC
+    filterClassification_internal:
+      title: filterClassification_internal
+      type: array
+      items:
+        $ref: '#/components/schemas/classification'
+    filterPlatform_internal:
+      title: filterPlatform_internal
+      x-stoplight:
+        id: 07osm8uexhmzc
+      type: array
+      items:
+        $ref: '#/components/schemas/platform'
+        x-stoplight:
+          id: blbjael8tal1d
+    filterType:
+      title: filterType
+      type: array
+      items:
+        type: string
+    filterTextMatch:
+      title: filterTextMatch
+      x-stoplight:
+        id: l613i9qr8h8a6
+      type: string
+      enum:
+        - contains
+        - startsWith
+        - endsWith
+        - equals
+    sort_internal:
+      title: sort_internal
+      type: array
+      items:
+        $ref: '#/components/schemas/sortBy'
+        x-stoplight:
+          id: rco9c6oaws4eh
+    sortBy:
+      title: sortBy
+      x-stoplight:
+        id: th8hud7fjoevd
+      type: string
+      enum:
+        - name asc
+        - startDate asc
+        - endDate asc
+        - type asc
+        - status asc
+        - jobNumber asc
+        - constructionType asc
+        - deliveryMethod asc
+        - contractType asc
+        - currentPhase asc
+        - companyCount asc
+        - memberCount asc
+        - createdAt asc
+        - updatedAt asc
+        - name desc
+        - startDate desc
+        - endDate desc
+        - type desc
+        - status desc
+        - jobNumber desc
+        - constructionType desc
+        - deliveryMethod desc
+        - contractType desc
+        - currentPhase desc
+        - companyCount desc
+        - memberCount desc
+        - createdAt desc
+        - updatedAt desc
+    products:
+      title: products
+      x-stoplight:
+        id: qr6chlzpjohw0
+      type: string
+      enum:
+        - build
+        - docs
+        - takeoff
+        - cost
+        - autospecs
+        - financials
+        - buildingConnected
+        - capitalPlanning
+        - accountAdministration
+        - workshopxr
+        - insight
+        - projectAdministration
+        - modelCoordination
+        - designCollaboration
+        - cloudWorksharing
+        - fieldManagement
+        - costManagement
+        - glue
+        - documentManagement
+        - projectHome
+        - assets
+        - quantification
+        - plan
+        - field
+        - projectManagement
+      description: ''
+    products_internal:
+      title: products_internal
+      x-stoplight:
+        id: 9c80166a5fe5a
+      type: array
+      items:
+        $ref: '#/components/schemas/products'
+        x-stoplight:
+          id: qeezmlysbidw9
+    productKeys:
+      title: productKeys
+      type: string
+      enum:
+        - build
+        - docs
+        - takeoff
+        - cost
+        - autoSpecs
+        - financials
+        - buildingConnected
+        - capitalPlanning
+        - accountAdministration
+        - workshopxr
+        - insight
+        - projectAdministration
+        - modelCoordination
+        - designCollaboration
+        - and cloudWorksharing
+    productAccess:
+      title: productAccess
+      x-stoplight:
+        id: fb0367b9f7e57
+      type: string
+      enum:
+        - administrator
+        - member
+        - none
+    timezone:
+      title: timezone
+      type: string
+      enum:
+        - Pacific/Honolulu
+        - America/Juneau
+        - America/Los_Angeles
+        - America/Phoenix
+        - America/Denver
+        - America/Chicago
+        - America/New_York
+        - America/Indiana/Indianapolis
+        - Pacific/Pago_Pago
+        - Pacific/Midway
+        - America/Tijuana
+        - America/Chihuahua
+        - America/Mazatlan
+        - America/Guatemala
+        - America/Mexico_City
+        - America/Monterrey
+        - America/Regina
+        - America/Bogota
+        - America/Lima
+        - America/Caracas
+        - America/Halifax
+        - America/Guyana
+        - America/La_Paz
+        - America/Santiago
+        - America/St_Johns
+        - America/Sao_Paulo
+        - America/Argentina/Buenos_Aires
+        - America/Godthab
+        - Atlantic/South_Georgia
+        - Atlantic/Azores
+        - Atlantic/Cape_Verde
+        - Africa/Casablanca
+        - Europe/Dublin
+        - Europe/Lisbon
+        - Europe/London
+        - Africa/Monrovia
+        - Etc/UTC
+        - Europe/Amsterdam
+        - Europe/Belgrade
+        - Europe/Berlin
+        - Europe/Bratislava
+        - Europe/Brussels
+        - Europe/Budapest
+        - Europe/Copenhagen
+        - Europe/Ljubljana
+        - Europe/Madrid
+        - Europe/Paris
+        - Europe/Prague
+        - Europe/Rome
+        - Europe/Sarajevo
+        - Europe/Skopje
+        - Europe/Stockholm
+        - Europe/Vienna
+        - Europe/Warsaw
+        - Africa/Algiers
+        - Europe/Zagreb
+        - Europe/Athens
+        - Europe/Bucharest
+        - Africa/Cairo
+        - Africa/Harare
+        - Europe/Helsinki
+        - Europe/Istanbul
+        - Asia/Jerusalem
+        - Europe/Kiev
+        - Africa/Johannesburg
+        - Europe/Riga
+        - Europe/Sofia
+        - Europe/Tallinn
+        - Europe/Vilnius
+        - Asia/Baghdad
+        - Asia/Kuwait
+        - Europe/Minsk
+        - Africa/Nairobi
+        - Asia/Riyadh
+        - Asia/Tehran
+        - Asia/Muscat
+        - Asia/Baku
+        - Europe/Moscow
+        - Asia/Tbilisi
+        - Asia/Yerevan
+        - Asia/Kabul
+        - Asia/Karachi
+        - Asia/Tashkent
+        - Asia/Kolkata
+        - Asia/Colombo
+        - Asia/Kathmandu
+        - Asia/Almaty
+        - Asia/Dhaka
+        - Asia/Yekaterinburg
+        - Asia/Rangoon
+        - Asia/Bangkok
+        - Asia/Jakarta
+        - Asia/Novosibirsk
+        - Asia/Shanghai
+        - Asia/Chongqing
+        - Asia/Hong_Kong
+        - Asia/Krasnoyarsk
+        - Asia/Kuala_Lumpur
+        - Australia/Perth
+        - Asia/Singapore
+        - Asia/Taipei
+        - Asia/Ulaanbaatar
+        - Asia/Urumqi
+        - Asia/Irkutsk
+        - Asia/Tokyo
+        - Asia/Seoul
+        - Australia/Adelaide
+        - Australia/Darwin
+        - Australia/Brisbane
+        - Australia/Melbourne
+        - Pacific/Guam
+        - Australia/Hobart
+        - Pacific/Port_Moresby
+        - Australia/Sydney
+        - Asia/Yakutsk
+        - Pacific/Noumea
+        - Asia/Vladivostok
+        - Pacific/Auckland
+        - Pacific/Fiji
+        - Asia/Kamchatka
+        - Asia/Magadan
+        - Pacific/Majuro
+        - Pacific/Guadalcanal
+        - Pacific/Tongatapu
+        - Pacific/Apia
+        - Pacific/Fakaofo
+    currency:
+      title: currency
+      type: string
+      enum:
+        - AED
+        - AFN
+        - ALL
+        - AMD
+        - ANG
+        - AOA
+        - ARS
+        - AUD
+        - AWG
+        - AZN
+        - BAM
+        - BBD
+        - BDT
+        - BGN
+        - BHD
+        - BIF
+        - BMD
+        - BND
+        - BOB
+        - BOV
+        - BRL
+        - BSD
+        - BTN
+        - BWP
+        - BYN
+        - BYR
+        - BZD
+        - CAD
+        - CDF
+        - CHE
+        - CHF
+        - CHW
+        - CLF
+        - CLP
+        - CNY
+        - COP
+        - COU
+        - CRC
+        - CUC
+        - CUP
+        - CVE
+        - CZK
+        - DJF
+        - DKK
+        - DOP
+        - DZD
+        - EEK
+        - EGP
+        - ERN
+        - ETB
+        - EUR
+        - FJD
+        - FKP
+        - GBP
+        - GEL
+        - GHS
+        - GIP
+        - GMD
+        - GNF
+        - GTQ
+        - GYD
+        - HKD
+        - HNL
+        - HRK
+        - HTG
+        - HUF
+        - IDR
+        - ILS
+        - INR
+        - IQD
+        - IRR
+        - ISK
+        - JMD
+        - JOD
+        - JPY
+        - KES
+        - KGS
+        - KHR
+        - KMF
+        - KPW
+        - KRW
+        - KWD
+        - KYD
+        - KZT
+        - LAK
+        - LBP
+        - LKR
+        - LRD
+        - LSL
+        - LTL
+        - LVL
+        - LYD
+        - MAD
+        - MDL
+        - MGA
+        - MKD
+        - MMK
+        - MNT
+        - MOP
+        - MRU
+        - MUR
+        - MVR
+        - MWK
+        - MXN
+        - MXV
+        - MYR
+        - MZN
+        - NAD
+        - NGN
+        - NIO
+        - NOK
+        - NPR
+        - NZD
+        - OMR
+        - PAB
+        - PEN
+        - PGK
+        - PHP
+        - PKR
+        - PLN
+        - PYG
+        - QAR
+        - RON
+        - RSD
+        - RUB
+        - RWF
+        - SAR
+        - SBD
+        - SCR
+        - SDG
+        - SEK
+        - SGD
+        - SHP
+        - SLE
+        - SLL
+        - SOS
+        - SRD
+        - SSP
+        - STN
+        - SVC
+        - SYP
+        - SZL
+        - THB
+        - TJS
+        - TMT
+        - TND
+        - TOP
+        - TRL
+        - TRY
+        - TTD
+        - TWD
+        - TZS
+        - UAH
+        - UGX
+        - USD
+        - USN
+        - UYI
+        - UYU
+        - UYW
+        - UZS
+        - VED
+        - VES
+        - VND
+        - VUV
+        - WST
+        - XAF
+        - XAG
+        - XAU
+        - XBA
+        - XBB
+        - XBC
+        - XBD
+        - XCD
+        - XDR
+        - XOF
+        - XPD
+        - XPF
+        - XPT
+        - XSU
+        - XTS
+        - XUA
+        - XXX
+        - YER
+        - ZAR
+        - ZMW
+        - ZWL
+    userFields:
+      title: userFields
+      x-stoplight:
+        id: 7zsag4qu2hd1k
+      type: string
+      enum:
+        - name
+        - email
+        - firstName
+        - lastName
+        - autodeskId
+        - addressLine1
+        - addressLine2
+        - city
+        - stateOrProvince
+        - postalCode
+        - country
+        - imageUrl
+        - lastSignIn
+        - phone
+        - jobTitle
+        - industry
+        - aboutMe
+        - createdAt
+        - updatedAt
+        - accessLevels
+        - companyId
+        - roleIds
+        - roles
+        - status
+        - addedOn
+        - products
+    userFields_internal:
+      title: userFields_internal
+      type: array
+      items:
+        $ref: '#/components/schemas/userFields'
+        x-stoplight:
+          id: web6yrp57burr
+    accessLevels:
+      title: accessLevels
+      x-stoplight:
+        id: v2kbai7y3z4ls
+      type: string
+      enum:
+        - accountAdmin
+        - projectAdmin
+        - executive
+    accessLevels_internal:
+      title: accessLevels_internal
+      x-stoplight:
+        id: wmvzmw12gsy4j
+      type: array
+      items:
+        $ref: '#/components/schemas/accessLevels'
+        x-stoplight:
+          id: 8768wybirus40
+    filterAutodeskId:
+      title: filterAutodeskId
+      x-stoplight:
+        id: 2avndceqj70a9
+      type: array
+      items:
+        x-stoplight:
+          id: 3ffftrtd5ie5v
+        type: string
+    filterID:
+      title: filterID
+      type: array
+      items:
+        type: string
+    filterRoleIds:
+      title: filterRoleIds
+      x-stoplight:
+        id: b2vwul3iejon9
+      type: array
+      items:
+        x-stoplight:
+          id: cjucar8u515y5
+        type: string
+    userSortBy:
+      title: userSortBy
+      x-stoplight:
+        id: 4pk6sj0cgqqan
+      type: string
+      enum:
+        - name asc
+        - email asc
+        - firstName asc
+        - lastName asc
+        - addressLine1 asc
+        - addressLine2 asc
+        - city asc
+        - companyName asc
+        - stateOrProvince asc
+        - status asc
+        - phone asc
+        - postalCode asc
+        - country asc
+        - addedOn asc
+        - name desc
+        - email desc
+        - firstName desc
+        - lastName desc
+        - addressLine1 desc
+        - addressLine2 desc
+        - city desc
+        - companyName desc
+        - stateOrProvince desc
+        - status desc
+        - phone desc
+        - postalCode desc
+        - country desc
+        - addedOn desc
+    userSortBy_internal:
+      title: userSortBy_internal
+      x-stoplight:
+        id: gtw01y7bwe28r
+      type: array
+      items:
+        $ref: '#/components/schemas/userSortBy'
+        x-stoplight:
+          id: doc1w838c38cz
+    orFilters:
+      title: orFilters
+      x-stoplight:
+        id: hch98m33unr18
+      type: string
+      enum:
+        - id
+        - name
+        - email
+        - autodeskId
+        - status
+        - accessLevels
+    orFilters_internal:
+      title: orFilters_internal
+      x-stoplight:
+        id: el45nd3vlwq52
+      type: array
+      items:
+        $ref: '#/components/schemas/orFilters'
+        x-stoplight:
+          id: xms9nyrej26w8
+    statusFilter:
+      title: statusFilter
+      x-stoplight:
+        id: xqc12d47t2w4v
+      type: string
+      enum:
+        - active
+        - pending
+        - deleted
+    statusFilter_internal:
+      title: statusFilter_internal
+      x-stoplight:
+        id: egjtyb75hopy5
+      type: array
+      items:
+        $ref: '#/components/schemas/statusFilter'
+        x-stoplight:
+          id: hcsuxuefqfyhc
+    trade:
+      title: trade
+      x-stoplight:
+        id: l2gbhaf1mw5jg
+      type: string
+      enum:
+        - Architecture
+        - Communications
+        - Communications | Data
+        - Concrete
+        - Concrete | Cast-in-Place
+        - Concrete | Precast
+        - Construction Management
+        - Conveying Equipment
+        - Conveying Equipment | Elevators
+        - Demolition
+        - Earthwork
+        - Earthwork | Site Excavation & Grading
+        - Electrical
+        - Electrical Power Generation
+        - Electronic Safety & Security
+        - Equipment
+        - Equipment | Kitchen Appliances
+        - Exterior Improvements
+        - Exterior | Fences & Gates
+        - Exterior | Landscaping
+        - Exterior | Irrigation
+        - Finishes
+        - Finishes | Carpeting
+        - Finishes | Ceiling
+        - Finishes | Drywall
+        - Finishes | Flooring
+        - Finishes | Painting & Coating
+        - Finishes | Tile
+        - Fire Suppression
+        - Furnishings
+        - Furnishings | Casework & Cabinets
+        - Furnishings | Countertops
+        - Furnishings | Window Treatments
+        - General Contractor
+        - 'HVAC Heating, Ventilating, & Air Conditioning'
+        - Industry-Specific Manufacturing Processing
+        - Integrated Automation
+        - Masonry
+        - Material Processing & Handling Equipment
+        - Metals
+        - Metals | Structural Steel / Framing
+        - Moisture Protection
+        - Moisture Protection | Roofing
+        - Moisture Protection | Waterproofing
+        - Openings
+        - Openings | Doors & Frames
+        - Openings | Entrances & Storefronts
+        - Openings | Glazing
+        - Openings | Roof Windows & Skylights
+        - Openings | Windows
+        - Owner
+        - Plumbing
+        - Pollution & Waste Control Equipment
+        - 'Process Gas & Liquid Handling, Purification, & Storage Equipment'
+        - 'Process Heating, Cooling, & Drying Equipment'
+        - Process Integration
+        - Process Integration | Piping
+        - Special Construction
+        - Specialties
+        - Specialties | Signage
+        - Utilities
+        - Water & Wastewater Equipment
+        - Waterway & Marine Construction
+        - Wood & Plastics
+        - Wood & Plastics | Millwork
+        - Wood & Plastics | Rough Carpentry
+  securitySchemes:
+    2-legged:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: ''
+          refreshUrl: ''
+          scopes: {}
+    3-legged-implicit:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: ''
+          refreshUrl: ''
+          scopes: {}
+    3-legged:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: ''
+          tokenUrl: ''
+          refreshUrl: ''
+          scopes: {}
+security:
+  - 2-legged: []
+  - 3-legged: []
+tags:
+  - name: Account Users
+  - name: Business Units
+  - name: Companies
+  - name: Project Users
+  - name: Projects

@@ -1,0 +1,1062 @@
+openapi: 3.1.0
+
+info:
+  title: Secure Service Account (SSA)
+  description: |-
+    APIs to manage Service accounts and keys. 
+
+    A service account is an identity that an application can use to make API requests to other services without a user authorizing the requests. A service account is identified by a unique email address and has an Oxygen ID.
+
+    A service account has one or more private keys. A private key is generated through an asymmetric cryptography algorithm; the paired public key is stored by Autodesk Identity.
+
+    An application can use a service account's private key to generate a JWT token. The JWT token provides proof of implicit authentication and authorization for this service account; an application can exchange it for a three-legged access token for the service service.
+
+    General error response from APIs:
+    ```
+    {
+        "title:": "...",
+        "detail": "..."
+    }
+    ```
+  version: '1.0'
+servers:
+  - url: 'https://developer.api.autodesk.com'
+paths:
+  /authentication/v2/service-accounts:
+    post:
+      tags:
+        - Account Management
+      summary: Create Service Account
+      description: |-
+        This API enables a [server-to-server application](https://aps.autodesk.com/en/docs/oauth/v2/developers_guide/App-types/Machine-to-machine/) to create a service account. 
+        Additionally, an allowlisted Autodesk internal client can create a service account on behalf of a server-to-server application.
+        To allowlist the client, please reach out to Identity team at [#oxygen](https://autodesk.enterprise.slack.com/archives/C075EFGET) slack channel for assistance.
+
+        An application has up to 10 service accounts at any given time.
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account:write`.
+
+
+          ### Service account creation by a server-to-server application
+          Request body sample
+
+          ```json
+          {
+              "name": "test_service_account"
+          }
+          ```
+          
+
+          Errors
+
+          | status code | title                 | detail                                             |
+          |-------------|-----------------------|---------------------------------------------------------------|
+          | 400         | invalid_request       | The 'name' is empty.                                      |
+          | 400         | invalid_request       | The length of the 'name' should be between 5 and 64 characters.|     
+          | 400         | invalid_request       | The 'name' contains invalid characters.                   |   
+          | 400         | invalid_request       | The 'name' should contain at least one alpha numeric character. |  
+          | 400         | invalid_request       | The 'name' already exists.                                      |
+          | 401         | unauthorized          | The token has expired or is invalid.                            |                    
+          | 401         | unauthorized          | The token should be a two-legged token.                         |
+          | 403         | invalid_client        | The client is not allowed to create service accounts on behalf of other server-to-server applications. |
+          | 403         | invalid_client        | The client is not a server-to-server application. |
+          | 403         | limit_exceeded        | The number of service accounts has exceeded the limit.          |
+
+
+          ### Service account creation by an allowlisted Autodesk internal client on behalf of a server-to-server application
+          Request body sample
+
+          ```json
+          {
+              "clientId": "BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg"
+              "name": "test_service_account"
+          }
+          ```
+          
+          The value of clientId should be set to the client ID of the server-to-server application.
+
+          Allowlisted Autodesk internal clients are not limited to server-to-server applications.
+
+          Errors
+
+          | status code | title                 | detail                                             |
+          |-------------|-----------------------|---------------------------------------------------------------|
+          | 400         | invalid_request       | The 'clientId' does not exist.                               |
+          | 400         | invalid_request       | The 'clientId' is not a server-to-server application.        |
+          | 400         | invalid_request       | The 'name' is empty.                                      |
+          | 400         | invalid_request       | The length of the 'name' should be between 5 and 100 characters.|     
+          | 400         | invalid_request       | The 'name' contains invalid characters.                   |   
+          | 400         | invalid_request       | The 'name' should contain at least one alpha numeric character. |  
+          | 400         | invalid_request       | The 'name' already exists.                                      |
+          | 401         | unauthorized          | The token has expired or is invalid.                            |                              
+          | 401         | unauthorized          | The token should be a two-legged token.                         |
+          | 403         | invalid_client        | The client is not allowed to create service accounts on behalf of other server-to-server applications. |
+          | 403         | limit_exceeded        | The number of service accounts has exceeded the limit.          |
+
+
+        Upon a successful response, the API returns the service account ID and email. 
+
+        The email format in the response is 
+        ```
+          <serviceAccountName>@<clientID>.adskserviceaccount.autodesk.com
+        ```
+      operationId: create-service-account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create-service-account-request'
+            examples:
+              Example:
+                value:
+                  clientId: BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg
+                  name: test_service_account
+        required: false
+        description: ''
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/service-account-response'
+              example:
+                serviceAccountId: TQUXKFEXUHLS
+                email: test_service_account@BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg.adskserviceaccount.autodesk.com
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: invalid_request
+                detail: The 'name' is empty.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: limit_exceeded
+                detail: The number of service accounts has exceeded the limit.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    get:
+      tags:
+        - Account Management
+      summary: Get All Service Accounts
+      description: "Retrieve all service accounts associated with an application.\n\nIf an allowlisted Autodesk internal client wants to retrieve all service accounts on behalf of another client, they should pass the clientId of the owner as a query parameter.\n\nThe API requires a two-legged bearer token with the following scope:`application:service_account:read`.\n\nErrors:\n\n| status code | title                 | detail                                   |\n|-------------|-----------------------|-----------------------------------------------------|\n| 401         | unauthorized          | The token has expired or is invalid.                |\n| 401         | unauthorized          | The token should be a two-legged token.             |\n| 403\t        | invalid_client\t      | The client is not allowed to get service accounts on behalf of other server-to-server applications.|"
+      operationId: get-service-accounts
+      parameters:
+        - name: clientId
+          in: query
+          schema:
+            type: string
+            description: The clientId represents the owner of the client. This clientId value should be passed as a query string when an allowlisted Autodesk internal client is making a request on behalf of another client.
+          allowEmptyValue: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  serviceAccounts:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      properties:
+                        serviceAccountId:
+                          type: string
+                          description: The Oxygen ID of the service account
+                        email:
+                          type: string
+                          description: The email of the service account
+                        createdBy:
+                          type: string
+                          description: The client ID used to create the service account
+                        status:
+                          type: string
+                          description: 'The status of the service account can be ''ENABLED'', ''DISABLED'', or ''DEACTIVATED'''
+                        createdAt:
+                          type: string
+                          description: The creation time of the service account
+                        accessedAt:
+                          type: string
+                          description: This is the most recent time an access token was generated for this service account
+                        expiresAt:
+                          type: string
+                          description: The expiration time of the service account
+                x-examples:
+                  example-1:
+                    serviceAccounts:
+                      - serviceAccountId: TQUXKFEXUHLS
+                        email: testserviceaccount@BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg.adskserviceaccount.autodesk.com
+                        createdBy: BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg
+                        status: ENABLED
+                        createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                        accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                        expiresAt: '2025-01-25 03:08:04.156576834 +0000 UTC'
+                      - serviceAccountId: TQUXKFEXUHLL
+                        email: testserviceaccount@nWPwCnuV5M57GA32NZaB6FKMF7MqQ8Dg.adskserviceaccount.autodesk.com
+                        createdBy: test_client_2
+                        status: DISABLED
+                        createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                        accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                        expiresAt: '2025-01-25 03:08:04.156576834 +0000 UTC'
+              example:
+                serviceAccounts:
+                  - serviceAccountId: TQUXKFEXUHLS
+                    email: testserviceaccount1@BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg.adskserviceaccount.autodesk.com
+                    createdBy: BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg
+                    status: ENABLED
+                    createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                    accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                    expiresAt: '2025-01-25 03:08:04.156576834 +0000 UTC'
+                  - serviceAccountId: TQUXKFEXUHLL
+                    email: testserviceaccount1@nWPwCnuV5M57GA32NZaB6FKMF7MqQ8Dg.adskserviceaccount.autodesk.com
+                    createdBy: BQ9teWlrzwgWetA5Eeog4bWAB5cZp2Zg
+                    status: DISABLED
+                    createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                    accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                    expiresAt: '2025-01-25 03:08:04.156576834 +0000 UTC'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    parameters: []
+  '/authentication/v2/service-accounts/{serviceAccountId}':
+    get:
+      tags:
+        - Account Management
+      summary: Get Service Account
+      description: |-
+        Retrieve the details for a service account.
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account:read`.
+
+        Errors:
+
+         status code  | title                 | detail                                    |  
+        |-------------|-----------------------|-----------------------------------------------------|
+        | 401         | unauthorized          | The token has expired or is invalid.                |
+        | 401         | unauthorized          | The token should be a two-legged token.             | 
+        | 404         | not_found             | The service account is not found.                   |
+      operationId: get-service-account
+      parameters:
+        - name: serviceAccountId
+          in: path
+          description: The Oxygen ID of the service account
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  serviceAccountId:
+                    type: string
+                    description: The Oxygen ID of the service account
+                  email:
+                    type: string
+                    description: The email of the service account
+                  createdBy:
+                    type: string
+                    description: The client ID used to create the service account
+                  status:
+                    type: string
+                    description: 'The status of the service account can be ''ENABLED'', ''DISABLED'', or ''DEACTIVATED'''
+                  createdAt:
+                    type: string
+                    description: The creation time of the service account
+                  accessedAt:
+                    type: string
+                    description: This is the most recent time an access token was generated for this service account
+                  expiresAt:
+                    type: string
+                    description: The expiration time of the service account
+              example:
+                serviceAccountId: test-user-id-1
+                email: test@nWPwCnuV5M57GA32NZaB6FKMF7MqQ8Dg.adskserviceaccount.autodesk.com
+                createdBy: nWPwCnuV5M57GA32NZaB6FKMF7MqQ8Dg
+                status: ENABLED
+                createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                expiresAt: '2025-01-25 03:08:04.156576834 +0000 UTC'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    patch:
+      tags:
+        - Account Management
+      summary: Enable or Disable Service Account
+      description: |-
+        This API facilitates enabling and disabling of a service account.
+
+        When a service account is disabled state, it loses its capability to manage its service account key. 
+        Assertions signed by the key will be treated as invalid.
+
+        This API allows to enable a service account that is in a deactivated state.
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account:write`.
+
+        Errors:
+
+         status code  | title                 | detail                                    |  
+        |-------------|-----------------------|-----------------------------------------------------|
+        | 400         | invalid_request       | The service account is already in an enabled state.  |
+        | 400         | invalid_request       | The service account is already in an disabled state. |
+        | 401         | unauthorized          | The token has expired or is invalid.                |
+        | 401         | unauthorized          | The token should be a two-legged token.            | 
+        | 404         | not_found             | The service account is not found.                   |
+      operationId: enable-service-account
+      parameters:
+        - name: serviceAccountId
+          in: path
+          description: The Oxygen ID of the service account
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/enable-service-account-request'
+            examples:
+              Example:
+                value:
+                  status: ENABLED
+        required: true
+        description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  serviceAccountId:
+                    type: string
+                    description: The Oxygen ID of the service account
+                  email:
+                    type: string
+                    description: The email of the service account
+                  createdBy:
+                    type: string
+                    description: The client ID used to create the service account
+                  status:
+                    type: string
+                    description: 'The status of the service account can be ''ENABLED'', ''DISABLED'', or ''DEACTIVATED'''
+                  createdAt:
+                    type: string
+                    description: The creation time of the service account
+                  accessedAt:
+                    type: string
+                    description: This is the most recent time an access token was generated for this service account
+                  expiresAt:
+                    type: string
+                    description: The expiration time of the service account
+              example:
+                serviceAccountId: test-user-id-1
+                email: test@nWPwCnuV5M57GA32NZaB6FKMF7MqQ8Dg.adskserviceaccount.autodesk.com
+                createdBy: nWPwCnuV5M57GA32NZaB6FKMF7MqQ8Dg
+                status: ENABLED
+                createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                expiryAt: '2025-01-25 03:08:04.156576834 +0000 UTC'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: invalid_request
+                detail: The service account is already in an enabled state.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    delete:
+      tags:
+        - Account Management
+      summary: Delete Service Account
+      description: |-
+        This API is used to delete an existing service account. When a service account is deleted, all associated keys will also be deleted.
+
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account:write`.
+
+        Errors:
+
+        | status code | title                 | detail                                                 |
+        |-------------|-----------------------|-------------------------------------------------------------------|
+        | 401         | unauthorized          | The token has expired or is invalid.                              |
+        | 401         | unauthorized          | The token should be a two-legged token.                           | 
+        | 404         | not_found             | The service account is not found.                                 |
+      operationId: delete-service-account
+      parameters:
+        - name: serviceAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The Oxygen ID of the service account
+      responses:
+        '204':
+          description: ''
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    parameters: []
+  '/authentication/v2/service-accounts/{serviceAccountId}/keys':
+    post:
+      tags:
+        - Key Management
+      summary: Create Keys
+      description: |-
+        This API is used to create a service account key. 
+
+        A service account key is a public-private key pair, generated using RSA with a key length of 2048 bits by the Identity Authorization Service (AuthZ).
+
+        The private key is returned once during its creation. AuthZ only stores the public key.
+
+        An service account has up to 3 keys at any given time.
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account_key:write`.
+
+        The API returns the key in PEM format, as shown below
+
+
+        ```
+         ----BEGIN PRIVATE KEY-----
+         MIIEvgIBADANBg...
+         -----END PRIVATE KEY-----
+          ```
+
+        Errors:
+
+        | status code | title                 | detail                                             |
+        |-------------|-----------------------|---------------------------------------------------------------|
+        | 400         | invalid_request       | The service account is not currently in an enabled state.     |
+        | 401         | unauthorized          | The token has expired or is invalid.                          |
+        | 401         | unauthorized          | The token should be a two-legged token.                       | 
+        | 403         | limit_exceeded        | The number of keys has exceeded the limit.                    |
+        | 404         | not_found             | The service account is not found.                             |
+      operationId: create-service-account-key
+      parameters:
+        - name: serviceAccountId
+          in: path
+          description: Oxgen ID of the service account
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/service-account-private-key'
+              example:
+                kid: 550e8400-e29b-41d4-a716-446655440000
+                privateKey: '----BEGIN PRIVATE KEY-----MIIEvgIBADANBg...-----END PRIVATE KEY-----'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: invalid_request
+                detail: The service account is not in an active state.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: limit_exceeded
+                detail: The number of keys has exceeded the limit.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    get:
+      tags:
+        - Key Management
+      summary: Get All Keys
+      description: |-
+        Lists all keys associated with the service account. This API will only return key metadata and not private or public key.
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account_key:read`.
+
+        Errors:
+
+        | status code | title                 | detail                                   |
+        |-------------|-----------------------|-----------------------------------------------------|
+        | 400         | invalid_request       | The service account is not currently in an enabled state.     |
+        | 401         | unauthorized          | The token has expired or is invalid.                |
+        | 401         | unauthorized          | The token should be a two-legged token.             | 
+        | 404         | not_found             | The service account is not found.                   |
+      operationId: get-private-keys
+      parameters:
+        - name: serviceAccountId
+          in: path
+          description: The Oxygen ID of the service account
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      properties:
+                        kid:
+                          type: string
+                          description: The ID of the private key
+                        status:
+                          type: string
+                          description: The status of the key can be either ENABLED or DISABLED
+                        createdAt:
+                          type: string
+                          description: The creation time of the key
+                        accessedAt:
+                          type: string
+                          description: This is the most recent time an access token was generated for this service account key
+              example:
+                keys:
+                  - kid: 550e8400-e29b-41d4-a716-446655440000
+                    status: ENABLED
+                    createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                    accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                  - kid: 120e8400-e29b-41d4-a716-446655440003
+                    status: DISABLED
+                    createdAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+                    accessedAt: '2024-01-25 03:08:04.156576834 +0000 UTC'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: invalid_request
+                detail: The service account is not in an active state.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    parameters: []
+  '/authentication/v2/service-accounts/{serviceAccountId}/keys/{keyId}':
+    patch:
+      tags:
+        - Key Management
+      summary: Enable or Disable Key
+      description: |-
+        This API facilitates enabling and disabling of a service account key.
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account_key:write`.
+
+        Errors:
+
+         status code  | title                 | detail                                    |  
+        |-------------|-----------------------|-----------------------------------------------------|
+        | 400         | invalid_request       | The service account is not currently in an enabled state.|
+        | 400         | invalid_request       | The key is already in an enabled state.             |
+        | 400         | invalid_request       | The key is already in an disabled state.            |
+        | 401         | unauthorized          | The token has expired or is invalid.                |
+        | 401         | unauthorized          | The token should be a two-legged token.             | 
+        | 404         | not_found             | The service account is not found.                   |
+        | 404         | not_found             | The key is not found.                               |
+      operationId: enable-disable-key
+      parameters:
+        - name: serviceAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The Oxygen ID of the service account
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the private key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/enable-service-account-key-request'
+            examples:
+              Example:
+                value:
+                  status: ENABLED
+        required: true
+        description: ''
+      responses:
+        '204':
+          description: No response body.
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: invalid_request
+                detail: The service account is not in an active state.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    delete:
+      tags:
+        - Key Management
+      summary: Delete key
+      description: |-
+        This API is used to delete an existing key.
+
+
+        The API requires a two-legged bearer token with the following scope:`application:service_account_key:write`.
+
+        Errors:
+        | status code | title                 | detail                                             |
+        |-------------|-----------------------|---------------------------------------------------------------|
+        | 400         | invalid_request       | The service account is not currently in an enabled state.     |
+        | 401         | unauthorized          | The token has expired or is invalid.                          |
+        | 401         | unauthorized          | The token should be a two-legged token.                       | 
+        | 404         | not_found             | The service account is not found.                             |
+        | 404         | not_found             | The key is not found.                                          |
+      operationId: delete-key
+      parameters:
+        - name: serviceAccountId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The Oxygen ID of the service account
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the private key
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: invalid_request
+                detail: The service account is not in an active state.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: unauthorized
+                detail: The token has expired or is invalid.
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forge-error'
+              example:
+                title: not_found
+                detail: The service account is not found.
+        '500':
+          description: ''
+          content: {}
+      security:
+        - client-credentials: []
+      x-codegen-request-body-name: body
+    parameters: []
+  /authentication/v2/token:
+    post:
+      tags:
+        - Exchange Token
+      summary: Exchanging JWT assertion for token
+      description: |-
+        Exchange a JWT assertion for access token by calling OAuth2 token management endpoint.
+
+
+        The API is only for confidential clients, it requires Basic Authorization(clientId, client_secret), supporting the inclusion of auth information(client_id, client_secret) either in the header or the body, but not both simultaneously.
+
+        JWT token signature will be generated by using RSASSA-PKCS1-V1_5-SIGN with the SHA-256 hash function with the private key for the following input content:
+
+        {Base64url encoded header}.{Base64url encoded claim set}
+
+        JWT assertion Claims:
+
+        | claim name  | value               |
+        |-------------|---------------------|
+        | iss         | Client ID           | 
+        | sub         | Service Account Oxygen ID         | 
+        | aud         | https://developer.api.autodesk.com/authentication/v2/token         | 
+        | exp         | Max 5 mins from current time. The value is number containing NumericDate  value as described in [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519#section-2)          | 
+        | scope       | Requested Forge API scopes defined in APS scopes [docs](https://aps.autodesk.com/en/docs/oauth/v3/developers_guide/scopes/). The value of the scope parameter is a string array, containing a list of case-sensitive scope name.  Example : ["data:read", "data:write"] | 
+
+
+        JWT assertion headers:
+
+        | Header parameter | value               |
+        |-------------|---------------------|
+        | kid         | The ID of the key used to sign the assertion           | 
+        | alg         | RS256           | 
+
+
+
+        This API is compliant with [RFC7523](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1)
+
+        Errors:
+
+        | status code | error               | error_description                                                                     |
+        |-------------|---------------------|---------------------------------------------------------------------------------------|
+        | 400         | invalid_request     | The token request must specify a valid 'grant_type'.                                  |
+        | 400         | invalid_request     | The request is missing a required parameter 'assertion'.                              |
+        | 400         | invalid_grant       | The service account is not currently in an enabled state.                           |
+        | 400         | invalid_grant       | The 'assertion' is invalid.                                                            |
+        | 401         | invalid_credentials | The client credentials are invalid.                                                    |
+      operationId: exchange-jwt-assertion
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - grant_type
+                - assertion
+              properties:
+                grant_type:
+                  type: string
+                  description: 'Must be "urn:ietf:params:oauth:grant-type:jwt-bearer".'
+                client_id:
+                  type: string
+                  description: This field is optional; it serves as an additional option where the client can either use the authorization header or opt to send this information in the body.
+                client_secret:
+                  type: string
+                  description: This field is optional; it serves as an additional option where the client can either use the authorization header or opt to send this information in the body.
+                assertion:
+                  type: string
+                  description: The value of the JWT assertion.
+                scope:
+                  type: string
+                  description: 'This is a space-delimited list of scopes. The scope in the token endpoint request body should be a subset of or the same as the scope specified in the assertion. If the scope is not present, then the returned access token will have the same scope as the assertion.'
+            examples:
+              Example:
+                value:
+                  grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                  assertion: test-jwt-assertion
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exchange-jwt-response'
+              example:
+                access_token: eyJhbGciOiJIUzI1NiIsImtpZCI6Imp3dF9zeW1tZXRyaWNfa2V5X2RldiJ9...
+                token_type: Bearer
+                expires_in: 3600
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              example:
+                error: invalid_request
+                error_description: something is wrong
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              example:
+                error: invalid_authorization
+                error_description: Token has expired or is invalid
+        '500':
+          description: ''
+          content: {}
+      security:
+        - basic-authorization: []
+components:
+  schemas:
+    create-service-account-request:
+      title: Create Service Account Request
+      type: object
+      examples: []
+      properties:
+        clientId:
+          type: string
+          description: 'This field is optional when a server-to-server application is creating a service account for itself. However, this field is required when allowlisted Autodesk internal clients are creating service accounts on behalf of a server-to-server application. The clientId value should be set to the server-to-server application client''s ID'
+        name:
+          type: string
+          description: 'The name of the service account. This name must be between 5 and 100 characters, and can contain alphanumeric characters and dashes'
+      required:
+        - name
+    enable-service-account-request:
+      title: Enable or Disable Service Account Request
+      type: object
+      examples: []
+      properties:
+        status:
+          type: string
+          description: 'The status of the service account to be set should be one of the allowed values: `ENABLED` or `DISABLED`'
+          enum:
+            - ENABLED
+            - DISABLED
+      required:
+        - status
+    enable-service-account-key-request:
+      title: Enable or Disable Service Account key Request
+      type: object
+      examples: []
+      properties:
+        status:
+          type: string
+          description: 'The status of the service account key to be set should be one of the allowed values: `ENABLED` or `DISABLED`'
+          enum:
+            - ENABLED
+            - DISABLED
+      required:
+        - status
+    service-account-private-key:
+      title: Service Account Private Key
+      type: object
+      properties:
+        kid:
+          type: string
+          description: The ID of the private key.
+        privateKey:
+          type: string
+          description: private key value
+    service-account-response:
+      title: Service Account
+      type: object
+      properties:
+        serviceAccountId:
+          type: string
+          description: The Oxygen ID of the service account
+        email:
+          type: string
+          description: The email of the service account
+    exchange-jwt-response:
+      title: Exchange JWT Response
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: access token value
+        token_type:
+          type: string
+          enum:
+            - Bearer
+        expires_in:
+          type: number
+          description: access token expiry time in seconds
+    error:
+      title: Error Reponse
+      type: object
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
+      description: Error response.
+    forge-error:
+      title: Error Reponse
+      type: object
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+      description: Error response.
+  securitySchemes:
+    basic-authorization:
+      type: http
+      description: 'ClientID:ClientSecret sent as basic Authorization'
+      scheme: basic
+    client-credentials:
+      type: oauth2
+      description: Use two-legged bearer token for authorization.
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          scopes: {}

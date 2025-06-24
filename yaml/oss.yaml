@@ -1,0 +1,2063 @@
+openapi: 3.0.1
+info:
+  title: oss
+  description: 'The Object Storage Service (OSS) allows your application to download and upload raw files (such as PDF, XLS, DWG, or RVT) that are managed by the Data service.'
+  termsOfService: 'http://developer.autodesk.com/termsOfService'
+  contact:
+    name: Autodesk Plaform Services
+    url: 'https://aps.autodesk.com/'
+    email: aps.help@autodesk.com
+  version: 1.0.0
+  x-support: 'https://stackoverflow.com/questions/tagged/autodesk-data-management'
+servers:
+  - url: 'https://developer.api.autodesk.com'
+tags:
+  - name: Buckets
+    description: Bucket related operations
+  - name: Objects
+    description: Object related operations
+paths:
+  /oss/v2/buckets:
+    get:
+      tags:
+        - Buckets
+      summary: List Buckets
+      description: |
+        Returns a list of buckets owned by the application. 
+      operationId: get_buckets
+      parameters:
+        - $ref: '#/components/parameters/region'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/startAt'
+      responses:
+        '200':
+          description: The list of buckets was successfully retrieved.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/buckets'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/buckets'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'bucket:read'
+      x-ads_command_line_example: 'curl -v "https://developer.api.autodesk.com/oss/v2/buckets" -X GET -H "Authorization: Bearer RhS6iEVMnEfl77MBSK3l2je06UHj"'
+      x-swagger-router-controller: Buckets
+    post:
+      tags:
+        - Buckets
+      summary: Create Bucket
+      description: |
+        Creates a bucket. 
+
+        Buckets are virtual container within the Object Storage Service (OSS), which you can use to store and manage objects (files) in the cloud. The application creating the bucket is the owner of the bucket.
+
+        **Note:** Do not use this operation to create buckets for BIM360 Document Management. Use [POST projects/{project_id}/storage](/en/docs/data/v2/reference/http/projects-project_id-storage-POST>) instead. For details, see [Upload Files to BIM 360 Document Management](/en/docs/bim360/v1/tutorials/document-management/upload-document).
+      operationId: create_bucket
+      parameters:
+        - $ref: '#/components/parameters/x-ads-region'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_buckets_payload'
+        required: true
+      responses:
+        '200':
+          description: Bucket was successfully created.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/bucket'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bucket'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '409':
+          description: The specified bucket key already exists.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/reason'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reason'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'bucket:create'
+      x-ads_command_line_example: 'curl -v "https://developer.api.autodesk.com/oss/v2/buckets" -X POST -H "Content-Type: application/json" -H "Authorization: Bearer kgEJWMJitdYbhfxghap8SbZqXMoS" -d  ''{"bucketKey":"apptestbucket","policyKey":"transient"}'''
+      x-swagger-router-controller: Buckets
+      x-codegen-request-body-name: policyKey
+    x-summary: Buckets
+    x-description: Buckets related operations
+  '/oss/v2/buckets/{bucketKey}':
+    delete:
+      tags:
+        - Buckets
+      summary: Delete Bucket
+      description: |
+        Deletes the specified bucket. Only the application that owns the bucket can call this operation. All other applications that call this operation will receive a "403 Forbidden" error. 
+
+        The initial processing of a bucket deletion request can be time-consuming. So, we recommend only deleting buckets containing a few objects, like those typically used for acceptance testing and prototyping. 
+
+        **Note:** Bucket keys will not be immediately available for reuse. 
+      operationId: delete_bucket
+      parameters:
+        - name: bucketKey
+          in: path
+          description: The bucket key of the bucket to delete.
+          required: true
+          schema:
+            pattern: '^[-_.a-z0-9]{3,128}$'
+            type: string
+      responses:
+        '200':
+          description: The bucket deletion request was accepted.
+          content: {}
+        '400':
+          description: 'BAD REQUEST, Invalid request due to malformed syntax or missing headers'
+          content: {}
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, The specified ``bucketKey`` does not exist.'
+          content: {}
+        '409':
+          description: 'CONFLICT, The specified bucket is already marked for deletion.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'bucket:delete'
+  '/oss/v2/buckets/{bucketKey}/details':
+    get:
+      tags:
+        - Buckets
+      summary: Get Bucket Details
+      description: |
+        Returns detailed information about the specified bucket.
+
+        **Note:** Only the application that owns the bucket can call this operation. All other applications that call this operation will receive a "403 Forbidden" error. 
+      operationId: get_bucket_details
+      parameters:
+        - name: bucketKey
+          in: path
+          description: The bucket key of the bucket to query.
+          required: true
+          schema:
+            pattern: '^[-_.a-z0-9]{3,128}$'
+            type: string
+      responses:
+        '200':
+          description: Bucket details were retrieved successfully.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/bucket'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bucket'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Bucket does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'bucket:read'
+            - 'viewables:read'
+      x-ads_command_line_example: 'curl -v "https://developer.api.autodesk.com/oss/v2/buckets" -X GET -H "Authorization: Bearer RhS6iEVMnEfl77MBSK3l2je06UHj"'
+      x-swagger-router-controller: Buckets
+    x-summary: Buckets
+    x-description: Buckets related operations
+  '/oss/v2/buckets/{bucketKey}/objects/{objectKey}':
+    delete:
+      tags:
+        - Objects
+      summary: Delete Object
+      description: Deletes an object from the bucket.
+      operationId: delete_object
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - $ref: '#/components/parameters/objectKey'
+        - name: x-ads-acm-namespace
+          in: header
+          description: 'This header is used to let the OSS Api Proxy know if ACM is used to authorize access to the given object. If this authorization is used by your service, then you must provide the name of the namespace you want to validate access control policies against.'
+          schema:
+            type: string
+          x-ignore: true
+        - name: x-ads-acm-check-groups
+          in: header
+          description: 'Informs the OSS API Proxy know if your service requires ACM authorization to also validate against Oxygen groups. If so, you must pass this header with a value of ``true``. Otherwise, the assumption is that checking authorization against Oxygen groups is not required.'
+          schema:
+            type: string
+          x-ignore: true
+        - name: x-ads-acm-groups
+          in: header
+          description: Use this header to pass the Oxygen groups you want the OSS Api Proxy to use for group validation for the given user in the OAuth2 token.
+          x-ignore: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object was successfully deleted.
+          content: {}
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Bucket does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/buckets/bucketexamplekey/objects/objectKey -X DELETE -H ''Authorization: Bearer kuhodzPEHSCrWH3Pm1WuBMBnxw39'' -H ''Content-Type: application/json;charset=UTF-8'''
+      x-swagger-router-controller: Objects
+    x-summary: Objects
+    x-description: Objects related operations
+  '/oss/v2/buckets/{bucketKey}/objects':
+    get:
+      tags:
+        - Objects
+      summary: List Objects
+      description: |
+        Returns a list objects in the specified bucket. 
+
+        Only the application that owns the bucket can call this operation. All other applications that call this operation will receive a "403 Forbidden" error.
+      operationId: get_objects
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - $ref: '#/components/parameters/limit'
+        - name: beginsWith
+          in: query
+          description: Filters the results by the value you specify. Only the objects with their ``objectKey`` beginning with the specified string are returned.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/startAt'
+      responses:
+        '200':
+          description: The requested objects were returned successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/bucket_objects'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bucket_objects'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:read'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/buckets/apptestbucket/objects?limit=1 -X GET -H ''Authorization: Bearer ShiAeQ67rdNSfmyEmtGW8Lnrcqto'' -H ''Content-Type: application/json'''
+      x-swagger-router-controller: Objects
+    x-summary: Objects
+    x-description: Objects related operations
+  '/oss/v2/buckets/{bucketKey}/objects/{objectKey}/details':
+    get:
+      tags:
+        - Objects
+      summary: Get Object Details
+      description: Returns detailed information about the specified object.
+      operationId: get_object_details
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - $ref: '#/components/parameters/objectKey'
+        - $ref: '#/components/parameters/If-Modified-Since'
+        - name: x-ads-acm-namespace
+          in: header
+          description: 'This header is used to let the OSS Api Proxy know if ACM is used to authorize access to the given object. If this authorization is used by your service, then you must provide the name of the namespace you want to validate access control policies against.'
+          schema:
+            type: string
+          x-ignore: true
+        - name: x-ads-acm-check-groups
+          in: header
+          description: 'Informs the OSS Api Proxy know if your service requires ACM authorization to also validate against Oxygen groups. If so, you must pass this header with a value of ``true``. Otherwise, the assumption is that checking authorization against Oxygen groups is not required.'
+          schema:
+            type: string
+          x-ignore: true
+        - name: x-ads-acm-groups
+          in: header
+          description: Use this header to pass the Oxygen groups you want the OSS Api Proxy to use for group validation for the given user in the OAuth2 token.
+          schema:
+            type: string
+          x-ignore: true
+        - $ref: '#/components/parameters/with'
+      responses:
+        '200':
+          description: 'OK, Get object details was successful.'
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/objectFullDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/objectFullDetails'
+        '304':
+          description: 'NOT MODIFIED, The supported formats have not been modified since the specified date.'
+          content: {}
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Object does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:read'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/buckets/apptestbucket/objects/test.txt/details -X GET -H ''Authorization: Bearer ShiAeQ67rdNSfmyEmtGW8Lnrcqto'' -H ''Content-Type: application/json'''
+      x-swagger-router-controller: Objects
+  '/oss/v2/buckets/{bucketKey}/objects/{objectKey}/signed':
+    post:
+      tags:
+        - Objects
+      summary: Generate OSS Signed URL
+      description: |
+        Generates a signed URL that can be used to download or upload an object within the specified expiration time. If the object the signed URL points to is deleted or expires before the signed URL expires, the signed URL will no longer be valid.
+
+        In addition to this operation that generates OSS signed URLs, OSS provides operations to generate S3 signed URLs. S3 signed URLs allow direct upload/download from S3 but are restricted to bucket owners. OSS signed URLs also allow upload/download and can be configured for access by other applications, making them suitable for sharing objects across applications.
+
+        Only the application that owns the bucket containing the object can call this operation.
+      operationId: create_signed_resource
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - $ref: '#/components/parameters/objectKey'
+        - $ref: '#/components/parameters/access'
+        - name: useCdn
+          in: query
+          description: |
+            ``true`` : Returns a Cloudfront URL to the object instead of an Autodesk URL (one that points to a location on https://developer.api.autodesk.com). Applications can interact with the Cloudfront URL exactly like with any classic public resource in OSS. They can use GET requests to download objects or PUT requests to upload objects.
+
+            ``false`` : (Default) Returns an Autodesk URL (one that points to a location on https://developer.api.autodesk.com) to the object.
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_signed_resource'
+      responses:
+        '200':
+          description: 'OK, Success'
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/create_object_signed'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_object_signed'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+      x-ads_command_line_example: 'curl -v -X POST ''https://developer.api.autodesk.com/oss/v2/buckets/apptestbucket/objects/test.txt/signed?access=read -H ''Authorization: Bearer L1yVvPcJDWel0oV3xlYnq7AMZIQE'' -H ''Content-Type: application/json;charset=UTF-8'' -d ''{"minutesExpiration":30}'''
+      x-swagger-router-controller: Objects
+    x-summary: Objects
+    x-description: Objects related operations
+  '/oss/v2/signedresources/{hash}':
+    parameters:
+      - name: hash
+        in: path
+        description: |
+          The ID component of the signed URL.
+
+          **Note:** The signed URL returned by [Generate OSS Signed URL](/en/docs/data/v2/reference/http/signedresources-:id-GET/) contains ``hash`` as a URI parameter.
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Objects
+      summary: Download Object Using Signed URL
+      description: |
+        Downloads an object using an OSS signed URL.
+
+        **Note:** The signed URL returned by [Generate OSS Signed URL](/en/docs/data/v2/reference/http/signedresources-:id-GET/)  contains the ``hash`` URI parameter as well. 
+      operationId: get_signed_resource
+      parameters:
+        - name: Range
+          in: header
+          description: 'The byte range to download, specified in the form ``bytes=<START_BYTE>-<END_BYTE>``.'
+          schema:
+            pattern: '^bytes=[0-9]+\-[0-9]*$'
+            type: string
+        - $ref: '#/components/parameters/If-None-Match'
+        - $ref: '#/components/parameters/If-Modified-Since'
+        - name: Accept-Encoding
+          in: header
+          description: |
+            The compression format your prefer to receive the data. Possible values are:
+
+            - ``gzip`` - Use the gzip format
+
+            **Note:** You cannot use ``Accept-Encoding:gzip`` with a Range header containing an end byte range. OSS will not honor the End byte range if ``Accept-Encoding: gzip`` header is used.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/region'
+        - name: response-content-disposition
+          in: query
+          description: 'The value of the Content-Disposition header you want to receive when you download the object using the signed URL. If you do not specify a value, the Content-Disposition header defaults to the value stored with OSS.'
+          schema:
+            type: string
+        - name: response-content-type
+          in: query
+          description: 'The value of the Content-Type header you want to receive when you download the object using the signed URL. If you do not specify a value, the Content-Type header defaults to the value stored with OSS.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: 'PARTIAL CONTENT, Partial content of the object is returned as requested.'
+          content: {}
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '416':
+          description: 'RANGE NOT SATISFIABLE, Request included a Range header that is not valid for this object.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:read'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/signedresources/7ffc5eef-1407-4c24-b3f3-3cbfe32a9232?region=US'' -X GET'
+      x-swagger-router-controller: Objects
+    put:
+      tags:
+        - Objects
+      summary: Replace Object Using Signed URL
+      description: |
+        Replaces an object that already exists on OSS, using an OSS signed URL. 
+
+        The signed URL must fulfil the following conditions:
+
+        - The signed URL is valid (it has not expired as yet).
+        - It was generated with ``write`` or ``readwrite`` for the ``access`` parameter.
+      operationId: upload_signed_resource
+      parameters:
+        - name: Content-Type
+          in: header
+          description: 'The MIME type of the object to upload; can be any type except ''multipart/form-data''. This can be omitted, but we recommend adding it.'
+          schema:
+            type: string
+        - name: Content-Length
+          in: header
+          description: 'The size of the data contained in the request body, in bytes.'
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: Content-Disposition
+          in: header
+          description: The suggested file name to use when this object is downloaded as a file.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/x-ads-region-4-object'
+        - name: If-Match
+          in: header
+          description: |
+            The current value of the ``sha1`` attribute of the object you want to replace. OSS checks the ``If-Match`` header against the ``sha1`` attribute of the object in OSS. If they match, OSS allows the object to be overwritten. Otherwise, it means that the object on OSS has been modified since you retrieved the ``sha1`` and the request fails.
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+                  description: The object to upload.
+                  format: binary
+        required: true
+      responses:
+        '200':
+          description: The object was replaced successfully.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/objectDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/objectDetails'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '412':
+          description: 'PRECONDITION FAILED, If the value sent for the `If-Match` header is not equal to the `sha1` value stored in OSS for this object, a Precondition Failed message will be returned.'
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/reason'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reason'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/signedresources/e63f23e2-2486-4f32-a921-bcfe8fade5e3 -X PUT -H ''Content-Type: text/plain; charset=UTF-8'' --data ''BODY: new file content bytes...'''
+      x-swagger-router-controller: Objects
+    delete:
+      tags:
+        - Objects
+      summary: Delete Object Using Signed URL
+      description: |
+        Delete an object using an OSS signed URL to access it.
+
+        Only applications that own the bucket containing the object can call this operation. 
+      operationId: delete_signed_resource
+      parameters:
+        - $ref: '#/components/parameters/x-ads-region-4-object'
+      responses:
+        '200':
+          description: The object was deleted successfully.
+          content: {}
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/signedresources/322cca8f-4cbf-448f-b70b-55df2597b0d2 -X DELETE -H ''Authorization: Bearer tQrZGiR0L1rYRAtEAsGyvA9ZF9Nj'''
+      x-swagger-router-controller: Objects
+    x-summary: Objects
+    x-description: Objects related operations
+  '/oss/v2/signedresources/{hash}/resumable':
+    put:
+      tags:
+        - Objects
+      summary: Upload Object Using Signed URL
+      description: |
+        Performs a resumable upload using an OSS signed URL. Use this operation to upload an object in chunks.
+
+        **Note:** The signed URL returned by [Generate OSS Signed URL](/en/docs/data/v2/reference/http/signedresources-:id-GET/) contains the ``hash`` as a URI parameter. 
+      operationId: upload_signed_resources_chunk
+      parameters:
+        - name: hash
+          in: path
+          description: |
+            The ID component of the signed URL.
+
+            **Note:** The signed URL returned by [Generate OSS Signed URL](/en/docs/data/v2/reference/http/signedresources-:id-GET/) contains ``hash`` as a URI parameter.
+          required: true
+          schema:
+            type: string
+        - name: Content-Type
+          in: header
+          description: 'The MIME type of the object to upload; can be any type except ''multipart/form-data''. This can be omitted, but we recommend adding it.'
+          schema:
+            type: string
+        - name: Content-Range
+          in: header
+          description: 'The byte range to upload, specified in the form ``bytes=<START_BYTE>-<END_BYTE>``.'
+          required: true
+          schema:
+            pattern: '^bytes [0-9]+\-[0-9]+\/[0-9]+$'
+            type: string
+        - name: Content-Disposition
+          in: header
+          description: The suggested file name to use when this object is downloaded as a file.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/x-ads-region-4-object'
+        - name: Session-Id
+          in: header
+          description: An ID to uniquely identify the file upload session.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+                  description: The chunk to upload.
+                  format: binary
+        required: true
+      responses:
+        '200':
+          description: Object was uploaded successfully.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/objectDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/objectDetails'
+        '202':
+          description: 'ACCEPTED, Request accepted but processing not complete. Call this operation iteratively until a 200 is returned.'
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/result'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '409':
+          description: 'CONFLICT, The specified bucket key already exists.'
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/reason'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reason'
+        '416':
+          description: 'REQUEST RANGE NOT SATISFIABLE, Missing Content-Range header.'
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/reason'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reason'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/signedresources/4ff88e65-e7c0-4b10-bac8-750f48b37cf2/resumable'' -X PUT -H ''Content-Type:text/plain; charset=UTF-8'' -H ''Content-Range:bytes 0-0/10'' -H ''Session-Id:1661831201'' --data '' X '''
+      x-swagger-router-controller: Objects
+    x-summary: Objects
+    x-description: Objects related operations
+  '/oss/v2/buckets/{bucketKey}/objects/{objectKey}/copyto/{newObjName}':
+    put:
+      tags:
+        - Objects
+      summary: Copy Object
+      description: Creates a copy of an object within the bucket.
+      operationId: copyTo
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - $ref: '#/components/parameters/objectKey'
+        - name: newObjName
+          in: path
+          description: A URL-encoded human friendly name to identify the copied object.
+          required: true
+          schema:
+            type: string
+        - name: x-ads-acm-namespace
+          in: header
+          description: 'This header is used to let the OSS Api Proxy know if ACM is used to authorize access to the given object. If this authorization is used by your service, then you must provide the name of the namespace you want to validate access control policies against.'
+          schema:
+            type: string
+          x-ignore: true
+        - name: x-ads-acm-check-groups
+          in: header
+          description: 'Informs the OSS Api Proxy know if your service requires ACM authorization to also validate against Oxygen groups. If so, you must pass this header with a value of ``true``. Otherwise, the assumption is that checking authorization against Oxygen groups is not required.'
+          schema:
+            type: string
+          x-ignore: true
+        - name: x-ads-acm-groups
+          in: header
+          description: Use this header to pass the Oxygen groups you want the OSS Api Proxy to use for group validation for the given user in the OAuth2 token.
+          schema:
+            type: string
+          x-ignore: true
+      responses:
+        '200':
+          description: Object was copied successfully.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/objectDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/objectDetails'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          $ref: '#/components/responses/NOT_FOUND'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+            - 'data:create'
+      x-ads_command_line_example: 'curl -v ''https://developer.api.autodesk.com/oss/v2/buckets/bucketexamplekey/objects/testobject/copyto/copyoftestobject'' -X PUT -H ''Authorization=Bearer 1B6FU8z9S2x1PrjADDfPCzSGrXmI'''
+      x-swagger-router-controller: Objects
+    x-summary: Objects
+    x-description: Objects related operations
+  '/oss/v2/buckets/{bucketKey}/objects/{objectKey}/signeds3download':
+    get:
+      tags:
+        - Objects
+      summary: Generate Signed S3 Download URL
+      description: |
+        Gets a signed URL to download an object directly from S3, bypassing OSS servers. This signed URL expires in 2 minutes by default, but you can change this duration if needed.  You must start the download before the signed URL expires. The download itself can take longer. If the download fails after the validity period of the signed URL has elapsed, you can call this operation again to obtain a fresh signed URL.
+
+        Only applications that have read access to the object can call this operation.   
+
+        You can use range headers with the signed download URL to download the object in chunks. This ability lets you download chunks in parallel, which can result in faster downloads.
+
+        If the object you want to download was uploaded in chunks and is still assembling on OSS, you will receive multiple S3 URLs instead of just one. Each URL will point to a chunk. If you prefer to receive a single URL, set the ``public-resource-fallback`` query parameter to ``true``. This setting will make OSS fallback to returning a single signed OSS URL, if assembling is still in progress. 
+
+        In addition to this operation that generates S3 signed URLs, OSS provides an operation to generate OSS signed URLs. S3 signed URLs allow direct upload/download from S3 but are restricted to bucket owners. OSS signed URLs also allow upload/download and can be configured for access by other applications, making them suitable for sharing objects across applications.
+      operationId: signed_s3_download
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - $ref: '#/components/parameters/objectKey'
+        - name: If-None-Match
+          in: header
+          description: 'The last known ETag value of the object. OSS returns the signed URL only if the ``If-None-Match`` header differs from the ETag value of the object on S3. If not, it returns a 304 "Not Modified" HTTP status.'
+          schema:
+            type: string
+        - name: If-Modified-Since
+          in: header
+          description: 'A timestamp in the HTTP date format (Mon, DD Month YYYY HH:MM:SS GMT). The signed URL is returned only if the object has been modified since the specified timestamp. If not, a 304 (Not Modified) HTTP status is returned.'
+          schema:
+            type: string
+            format: date
+        - name: x-ads-acm-scopes
+          in: header
+          description: Optional OSS-compliant scope reference to increase bucket search performance
+          required: false
+          schema:
+            pattern: '^([a-zA-Z0-9.\\-_]{3,50}(,?)){1,20}$'
+            type: string
+        - name: response-content-type
+          in: query
+          description: 'The value of the Content-Type header you want to receive when you download the object using the signed URL. If you do not specify a value, the Content-Type header defaults to the value stored with OSS.'
+          schema:
+            type: string
+        - name: response-content-disposition
+          in: query
+          description: 'The value of the Content-Disposition header you want to receive when you download the object using the signed URL. If you do not specify a value, the Content-Disposition header defaults to the value stored with OSS.'
+          schema:
+            type: string
+        - name: response-cache-control
+          in: query
+          description: 'The value of the Cache-Control header you want to receive when you download the object using the signed URL. If you do not specify a value, the Cache-Control header defaults to the value stored with OSS.'
+          schema:
+            type: string
+        - name: public-resource-fallback
+          in: query
+          description: |
+            Specifies how to return the signed URLs, in case the object was uploaded in chunks, and assembling of chunks is not yet complete.
+
+            - ``true`` : Return a single signed OSS URL.
+            - ``false`` : (Default) Return multiple signed S3 URLs, where each URL points to a chunk.
+          schema:
+            type: boolean
+        - name: minutesExpiration
+          in: query
+          description: |
+            The time window (in minutes) the signed URL will remain usable. Acceptable values = 1-60 minutes. Default = 2 minutes.
+
+            **Tip:** Use the smallest possible time window to minimize exposure of the signed URL.
+          schema:
+            type: integer
+        - name: useCdn
+          in: query
+          description: |
+            ``true`` : Returns a URL that points to a CloudFront edge location.
+
+            ``false`` : (Default) Returns a URL that points directly to the S3 object.
+          schema:
+            type: boolean
+        - name: redirect
+          in: query
+          description: Generates a HTTP redirection response (Temporary Redirect 307​) using the generated URL.
+          schema:
+            type: boolean
+          x-ignore: true
+      responses:
+        '200':
+          description: A signed S3 URL was successfully generated.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/signeds3download_response'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signeds3download_response'
+        '304':
+          description: 'NOT MODIFIED, If-None-Match header matches the object ETag or object has not been modified since the If-Modified-Since date.'
+          content: {}
+        '400':
+          description: 'BAD REQUEST, the request has missing or malformed parameters.'
+          content: {}
+        '401':
+          description: 'UNAUTHORIZED, Invalid authorization header.'
+          content: {}
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Object or Bucket does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:read'
+      x-swagger-router-controller: Objects
+      x-summary: Objects
+      x-description: Objects related operations
+  '/oss/v2/buckets/{bucketKey}/objects/batchsigneds3upload':
+    post:
+      tags:
+        - Objects
+      summary: Batch Generate Signed S3 Upload URLs
+      description: |
+        Creates and returns signed URLs to upload a set of objects directly to S3. These signed URLs expire in 2 minutes by default, but you can change this duration if needed.  You must start uploading the objects before the signed URLs expire. The upload  itself can take longer.
+
+        Only the application that owns the bucket can call this operation. All other applications that call this operation will receive a "403 Forbidden" error.
+
+        If required, you can request an array of signed URLs for each object, which lets you upload the objects in chunks. Once you upload all chunks you must call the [Complete Batch Upload to S3 Signed URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-batchcompleteupload-POST/) operation to indicate completion. This instructs OSS to assemble the chunks and reconstitute the object on OSS. You must call this operation even if you requested a single signed URL for an object.
+
+        If an upload fails after the validity period of a signed URL has elapsed, you can call this operation again to obtain fresh signed URLs. However, you must use the same ``uploadKey`` that was returned when you originally called this operation. 
+      operationId: batch_signed_s3_upload
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - name: useAcceleration
+          in: query
+          description: |
+            ``true`` : (Default) Generates a faster S3 signed URL using Transfer Acceleration.
+
+            ``false``: Generates a standard S3 signed URL.
+          schema:
+            type: boolean
+        - name: minutesExpiration
+          in: query
+          description: |
+            The time window (in minutes) the signed URL will remain usable. Acceptable values = 1-60 minutes. Default = 2 minutes.
+
+            **Tip:** Use the smallest possible time window to minimize exposure of the signed URL.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 60
+      requestBody:
+        description: An array of objects representing each request for a signed upload URL.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/batchsigneds3upload_object'
+      responses:
+        '200':
+          description: The request was successfully processed. The response body will contain objects that indicate the outcome for each object signed URLs were requested for. Objects corresponding to successful request will contain signed URLs. Objects corresponding to failed requests will contain details of the failure.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/batchsigneds3upload_response'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/batchsigneds3upload_response'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Object or Bucket does not exist.'
+          content: {}
+        '429':
+          $ref: '#/components/responses/RATE_LIMIT_EXCEEDED'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+            - 'data:create'
+      x-swagger-router-controller: Objects
+      x-summary: Objects
+      x-description: Objects related operations
+      x-codegen-request-body-name: requests
+  '/oss/v2/buckets/{bucketKey}/objects/batchcompleteupload':
+    post:
+      tags:
+        - Objects
+      summary: Complete Batch Upload to S3 Signed URLs
+      description: |
+        Requests OSS to start reconstituting the set of objects that were uploaded using signed S3 upload URLs. You must call this operation only after all the objects have been uploaded. 
+
+        You can specify up to 25 objects in this operation. 
+      operationId: batch_complete_upload
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+      requestBody:
+        description: 'An array of objects, each of which represents an upload to complete.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/batchcompleteupload_object'
+      responses:
+        '200':
+          description: The request was successfully processed. The response body will contain objects that indicate the outcome for each uploaded object.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/batchcompleteupload_response'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/batchcompleteupload_response'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: Object or Bucket does not exist.
+          content: {}
+        '429':
+          $ref: '#/components/responses/RATE_LIMIT_EXCEEDED'
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+            - 'data:create'
+      x-swagger-router-controller: Objects
+      x-summary: Objects
+      x-description: Objects related operations
+      x-codegen-request-body-name: requests
+  '/oss/v2/buckets/{bucketKey}/objects/batchsigneds3download':
+    post:
+      tags:
+        - Objects
+      summary: Batch Generate Signed S3 Download URLs
+      description: |
+        Creates and returns signed URLs to download a set of objects directly from S3. These signed URLs expire in 2 minutes by default, but you can change this duration if needed.  You must start download the objects before the signed URLs expire. The download itself can take longer.
+
+        Only the application that owns the bucket can call this operation. All other applications that call this operation will receive a "403 Forbidden" error.
+      operationId: batch_signed_s3_download
+      parameters:
+        - $ref: '#/components/parameters/bucketKey'
+        - name: public-resource-fallback
+          in: query
+          description: |
+            Specifies how to return the signed URLs, in case the object was uploaded in chunks, and assembling of chunks is not yet complete.
+
+            - ``true`` : Return a single signed OSS URL.
+            - ``false`` : (Default) Return multiple signed S3 URLs, where each URL points to a chunk.
+          schema:
+            type: boolean
+        - name: minutesExpiration
+          in: query
+          description: |
+            The time window (in minutes) the signed URL will remain usable. Acceptable values = 1-60 minutes. Default = 2 minutes.
+
+            **Tip:** Use the smallest possible time window to minimize exposure of the signed URL.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 60
+      requestBody:
+        description: An array of objects representing each request for a signed download URL.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/batchsigneds3download_object'
+        required: true
+      responses:
+        '200':
+          description: The request was successfully processed. The response body will contain objects that indicate the outcome for each object signed URLs were requested for. Objects corresponding to successful request will contain signed URLs. Objects corresponding to failed requests will contain details of the failure.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/batchsigneds3download_response'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/batchsigneds3download_response'
+        '400':
+          description: 'BAD REQUEST, the request has missing or malformed parameters.'
+          content: {}
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Object or Bucket does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:read'
+      x-swagger-router-controller: Objects
+      x-summary: Objects
+      x-description: Objects related operations
+      x-codegen-request-body-name: requests
+  '/oss/v2/buckets/{bucketKey}/objects/{objectKey}/signeds3upload':
+    parameters:
+      - $ref: '#/components/parameters/bucketKey'
+      - $ref: '#/components/parameters/objectKey'
+    get:
+      tags:
+        - Objects
+      summary: Generate Signed S3 Upload URL
+      description: |
+        Gets a signed URL to upload an object directly to S3, bypassing OSS servers. You can also request an array of signed URLs which lets you upload an object in chunks.
+
+        This signed URL expires in 2 minutes by default, but you can change this duration if needed.  You must start the upload before the signed URL expires. The upload itself can take longer. If the upload fails after the validity period of the signed URL has elapsed, you can call this operation again to obtain a fresh signed URL (or an array of signed URLs as the case may be). However, you must use the same ``uploadKey`` that was returned when you originally called this operation. 
+
+        Only applications that own the bucket can call this operation.
+
+        **Note:** Once you upload all chunks you must call the [Complete Upload to S3 Signed URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-signeds3upload-POST/) operation to indicate completion. This instructs OSS to assemble the chunks and reconstitute the object on OSS. You must call this operation even when using a single signed URL. 
+
+        In addition to this operation that generates S3 signed URLs, OSS provides an operation to generate OSS signed URLs. S3 signed URLs allow direct upload/download from S3 but are restricted to bucket owners. OSS signed URLs also allow upload/download and can be configured for access by other applications, making them suitable for sharing objects across applications.    
+      operationId: signed_s3_upload
+      parameters:
+        - name: x-ads-acm-scopes
+          in: header
+          description: Optional OSS-compliant scope reference to increase bucket search performance
+          required: false
+          schema:
+            pattern: '^([a-zA-Z0-9.\\-_]{3,50}(,?)){1,20}$'
+            type: string
+          x-ignore: true
+        - name: parts
+          in: query
+          description: |
+            The number of parts you intend to chunk the object for uploading. OSS will return that many signed URLs, one URL for each chunk. If you do not specify a value you'll get only one URL to upload the entire object.             
+          schema:
+            type: integer
+        - name: firstPart
+          in: query
+          description: The index of the first chunk to be uploaded.
+          schema:
+            type: integer
+        - name: uploadKey
+          in: query
+          description: 'The ``uploadKey`` of a previously-initiated upload, in order to request more chunk upload URLs for the same upload. If you do not specify a value, OSS will initiate a new upload entirely.'
+          schema:
+            type: string
+        - name: minutesExpiration
+          in: query
+          description: |
+            The time window (in minutes) the signed URL will remain usable. Acceptable values = 1-60 minutes. Default = 2 minutes.
+
+            **Tip:** Use the smallest possible time window to minimize exposure of the signed URL.
+          schema:
+            type: integer
+        - name: useAcceleration
+          in: query
+          description: |
+            ``true`` : (Default) Generates a faster S3 signed URL using Transfer Acceleration.
+
+            ``false``: Generates a standard S3 signed URL.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Signed URLs were successfully generated.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/signeds3upload_response'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signeds3upload_response'
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Bucket does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+            - 'data:create'
+      x-swagger-router-controller: Objects
+      x-summary: Objects
+      x-description: Objects related operations
+    post:
+      tags:
+        - Objects
+      summary: Complete Upload to S3 Signed URL
+      description: Requests OSS to assemble and reconstitute the object that was uploaded using signed S3 upload URL. You must call this operation only after all parts/chunks of the object has been uploaded.
+      operationId: complete_signed_s3_upload
+      parameters:
+        - name: Content-Type
+          in: header
+          description: Must be ``application/json``.
+          required: true
+          schema:
+            type: string
+        - name: x-ads-meta-Content-Type
+          in: header
+          description: The Content-Type value for the uploaded object to record within OSS.
+          schema:
+            type: string
+          x-external: true
+        - name: x-ads-meta-Content-Disposition
+          in: header
+          description: The Content-Disposition value for the uploaded object to record within OSS.
+          schema:
+            type: string
+          x-external: true
+        - name: x-ads-meta-Content-Encoding
+          in: header
+          description: The Content-Encoding value for the uploaded object to record within OSS.
+          schema:
+            type: string
+          x-external: true
+        - name: x-ads-meta-Cache-Control
+          in: header
+          description: The Cache-Control value for the uploaded object to record within OSS.
+          schema:
+            type: string
+          x-external: true
+        - name: x-ads-user-defined-metadata
+          in: header
+          description: 'Custom metadata to be stored with the object, which can be retrieved later on download or when retrieving object details. Must be a JSON object that is less than 100 bytes.'
+          schema:
+            type: string
+          x-external: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/completes3upload_body'
+        required: true
+      responses:
+        '200':
+          description: Upload successfully completed
+          content: {}
+        '400':
+          $ref: '#/components/responses/BAD_REQUEST'
+        '401':
+          $ref: '#/components/responses/UNAUTHORIZED'
+        '403':
+          $ref: '#/components/responses/FORBIDDEN'
+        '404':
+          description: 'NOT FOUND, Object or Bucket does not exist.'
+          content: {}
+        '500':
+          $ref: '#/components/responses/INTERNAL_SERVER_ERROR'
+      security:
+        - 2-legged:
+            - 'data:write'
+            - 'data:create'
+      x-swagger-router-controller: Objects
+      x-summary: Objects
+      x-description: Objects related operations
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    reason:
+      required:
+        - reason
+      type: object
+      properties:
+        reason:
+          type: string
+          description: reason for failure
+      description: An object returned with an error describing the reason for failure.
+    create_buckets_payload:
+      type: object
+      description: The request payload for the Create Bucket operation.
+      properties:
+        bucketKey:
+          type: string
+          description: |
+            Bucket key: A unique name you assign to a bucket. Bucket keys must be globally unique across all applications and regions. They must consist of only lower case characters, numbers 0-9, and underscores (_).
+
+            **Note:** You cannot change a bucket key once the bucket is created.
+        allow:
+          type: array
+          description: 'An array of objects, where each object represents an application that can access the bucket.'
+          items:
+            $ref: '#/components/schemas/create_buckets_payload_allow'
+        policyKey:
+          $ref: '#/components/schemas/PolicyKey'
+      required:
+        - bucketKey
+        - policyKey
+    objectDetails:
+      type: object
+      properties:
+        bucketKey:
+          type: string
+          description: The bucket key of the bucket that contains the object.
+        objectId:
+          type: string
+          description: An identifier (URN) that uniquely and persistently identifies the object.
+        objectKey:
+          type: string
+          description: A URL-encoded human friendly name to identify the object.
+        sha1:
+          pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'
+          type: string
+          description: A hash value computed from the data of the object.
+          format: byte
+        size:
+          type: integer
+          description: 'The total amount of storage space occupied by the object, in bytes.'
+          format: int32
+        contentType:
+          type: string
+          description: 'The format of the data stored within the object, expressed as a MIME type.'
+        location:
+          type: string
+          description: A URL that points to the actual location of the object.
+      description: Represents an object within a bucket.
+    objectFullDetails:
+      type: object
+      description: Represents detailed information about an object within a bucket.
+      properties:
+        bucketKey:
+          type: string
+          description: The bucket key of the bucket that contains the object.
+        objectId:
+          type: string
+          description: An identifier (URN) that uniquely and persistently identifies the object.
+        objectKey:
+          type: string
+          description: A URL-encoded human friendly name to identify the object.
+        sha1:
+          pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'
+          type: string
+          description: A hash value computed from the data of the object.
+          format: byte
+        size:
+          type: integer
+          description: 'The total amount of storage space occupied by the object, in bytes.'
+          format: int32
+        contentType:
+          type: string
+          description: 'The format of the data stored within the object, expressed as a MIME type.'
+        location:
+          type: string
+          description: A URL that points to the actual location of the object.
+        createdDate:
+          type: integer
+          format: int64
+          description: 'The time the object was created, represented as a Unix timestamp. Only returned if explicitly requested using the ``with`` query string parameter.'
+        lastAccessedDate:
+          type: integer
+          format: int64
+          description: 'The time the object was last accessed, represented as a Unix timestamp. Only returned if explicitly requested using the ``with`` query string parameter.'
+        lastModifiedDate:
+          type: integer
+          format: int64
+          description: 'The time the object was most recently modified, represented as a Unix timestamp. Only returned if explicitly requested using the ``with`` query string parameter.'
+        userDefinedMetadata:
+          type: string
+          description: 'Any custom metadata, if available. Only returned if explicitly requested for using the ``with`` query string parameter.'
+    create_signed_resource:
+      type: object
+      description: The request payload for a Generate OSS Signed URL operation.
+      properties:
+        minutesExpiration:
+          type: integer
+          description: |
+            The time window (in minutes) the signed URL will remain usable. Acceptable values = 1-60 minutes. Default = 2 minutes.
+
+            **Tip:** Use the smallest possible time window to minimize exposure of the signed URL.
+        singleUse:
+          type: boolean
+          description: |
+            ``true`` : The signed URL will expire immediately after use. For example, when downloading an object, URL will expire once the download is complete.
+
+            ``false`` : (Default) The signed URL will remain usable for the entire time window specified by ``minutesExpiration``. 
+        contentType:
+          type: string
+          description: 'The value to use as the Content-Type when downloading the object using the signed URL.  If this attribute is not provided, it defaults to the value corresponding to the object.'
+          x-ignore: true
+        contentDisposition:
+          type: string
+          description: 'The value to use as the Content-Disposition when downloading the object using the signed URL.  If this attribute is not provided, it defaults to the value corresponding to the object.'
+          x-ignore: true
+        allowedIpAddresses:
+          type: string
+          description: 'Restricts the signed URL to the specified IP addresses. Downloads and uploads will be allowed only for the list of the IP addresses in the ``X-Forwarded-For`` header received from Apigee. If not specified, use of the signed URL is not restricted.'
+          x-ignore: true
+    create_object_signed:
+      required:
+        - expiration
+        - signedUrl
+      type: object
+      description: The request payload for a Generate OSS Signed URL operation.
+      properties:
+        signedUrl:
+          type: string
+          description: URL created for downloading the object
+        expiration:
+          type: integer
+          description: Value for expiration in minutes
+          format: int64
+        allowedIpAddresses:
+          type: array
+          description: IP addresses that can make a request to this URL.
+          items:
+            type: string
+    Permission:
+      type: object
+      description: An object representing the permissions for accessing a bucket.
+      properties:
+        authId:
+          type: string
+          description: The Client ID of the application.
+        access:
+          $ref: '#/components/schemas/permission_access'
+    bucket:
+      type: object
+      description: An object representing a bucket.
+      properties:
+        bucketKey:
+          type: string
+          description: 'Bucket key: An ID that uniquely identifies the bucket.'
+        bucketOwner:
+          type: string
+          description: The Client ID of the application that owns the bucket.
+        createdDate:
+          type: string
+          description: 'The time the bucket was created, represented as a Unix timestamp.'
+        permissions:
+          type: array
+          description: 'An array of objects, where each object represents an application that can access the bucket.'
+          items:
+            $ref: '#/components/schemas/Permission'
+        policyKey:
+          $ref: '#/components/schemas/PolicyKey'
+    buckets:
+      title: buckets
+      required:
+        - items
+      type: object
+      description: An object that represents a collection of buckets.
+      properties:
+        items:
+          type: array
+          description: 'Array of objects, where each object represents a bucket.'
+          items:
+            $ref: '#/components/schemas/buckets_items'
+        next:
+          type: string
+          description: 'The URL to be used to retrieve the next page of results, if available. It will be present only when there are more items to be retrieved after the current set.'
+    result:
+      required:
+        - result
+      type: object
+      description: A response returned by an Upload Object Using Signed URL operation when processing is yet to be completed. 
+      properties:
+        result:
+          type: string
+    bucket_objects:
+      type: object
+      description: An array where each element represents an object in the bucket.
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectDetails'
+        next:
+          type: string
+          description: 'The URL to be used to retrieve the next page of results, if available. It will be present only when there are more items to be retrieved after the current set.'
+    create_buckets_payload_allow:
+      type: object
+      required:
+        - access
+        - authId
+      description: An object that represents the permissions allowed for a bucket.
+      properties:
+        authId:
+          type: string
+          description: The Client ID of the application.
+        access:
+          type: string
+          description: |
+            Specifies the level of permission the application has. Required when ``allow`` is specified. Possible values are:
+
+             - ``full`` - Unrestricted access to objects within the bucket.
+            - ``read_only`` - Read only access to the objects within the bucket. Modification or deletion of objects is not allowed.
+          enum:
+            - full
+            - read
+    buckets_items:
+      required:
+        - bucketKey
+        - createdDate
+        - policyKey
+      type: object
+      description: An object containing the properties of a bucket.
+      properties:
+        bucketKey:
+          type: string
+          description: 'Bucket key: An ID that uniquely identifies the bucket.'
+        createdDate:
+          type: integer
+          description: 'The time the bucket was created, represented as a Unix timestamp.'
+          format: int64
+        policyKey:
+          $ref: '#/components/schemas/PolicyKey'
+    signeds3download_response:
+      type: object
+      description: An object representing the response payload on successful execution of a Generate Signed S3 Download URL operation.
+      properties:
+        status:
+          $ref: '#/components/schemas/download_status'
+        url:
+          type: string
+          description: 'A S3 signed URL with which to download the object. This attribute is returned when ``status`` is ``complete`` or ``fallback``; in the latter case, this will return an OSS signed URL, not an S3 signed URL.'
+        urls:
+          type: object
+          description: 'A map of S3 signed URLs, one for each chunk of an unmerged resumable upload. This attribute is returned when ``status`` is ``chunked``. The key of each entry is the byte range of the total file which the chunk comprises.'
+        params:
+          type: object
+          description: |
+            The values that were requested for the following parameters when requesting the S3 signed URL.
+
+            - ``Content-Type``
+            - ``Content-Disposition``
+            - ``Cache-Control``.
+        size:
+          type: integer
+          format: int64
+          description: 'The total amount of storage space occupied by the object, in bytes.'
+        sha1:
+          type: string
+          description: 'A hash value computed from the data of the object, if available.'
+      required:
+        - status
+        - params
+        - size
+    batchsigneds3download_response:
+      required:
+        - results
+      type: object
+      description: The response to a Batch Generate Signed S3 Download URLs operation.
+      properties:
+        results:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/download_results'
+    download_results:
+      type: object
+      description: | 
+        An object that represents the response to a Batch Generate Signed S3 Download URLs operation. 
+
+        **Note**: objectKeyN is a placeholder for the first object key for which the client requested a download signed URL. The attributes within contain the success data / error information for the request for that object. `results` will contain one such attribute for each requested object in the batch.
+      properties:
+        status:
+          $ref: '#/components/schemas/download_status'
+        url:
+          type: string
+          description: 'A S3 signed URL with which to download the object. This attribute is returned when ``status`` is ``complete`` or ``fallback``; in the latter case, this will return an OSS signed URL, not an S3 signed URL.'
+        urls:
+          type: object
+          description: 'A map of S3 signed URLs, one for each chunk of an unmerged resumable upload. This attribute is returned when ``status`` is ``chunked``. The key of each entry is the byte range of the total file which the chunk comprises.'
+        params:
+          type: object
+          description: |
+            The values that were requested for the following parameters when requesting the S3 signed URL.
+
+            - ``Content-Type``
+            - ``Content-Disposition``
+            - ``Cache-Control``.
+        size:
+          type: integer
+          format: int64
+          description: 'The total amount of storage space occupied by the object, in bytes.'
+        sha1:
+          type: string
+          description: 'A hash value computed from the data of the object, if available.'
+    batchsigneds3download_object:
+      required:
+        - requests
+      type: object
+      description: The response to a Batch Generate Signed S3 Download URLs operation.
+      properties:
+        requests:
+          type: array
+          description: An array where each element is an object containing information needed to generate a signed S3 download URL.
+          items:
+            type: object
+            properties:
+              objectKey:
+                type: string
+                description: The URL-encoded human friendly name of the object to download.
+              response-content-type:
+                type: string
+                description: 'The value of the Content-Type header you want to receive when you download the object using the signed URL. If you do not specify a value, the Content-Type header defaults to the value stored with OSS.'
+              response-content-disposition:
+                type: string
+                description: 'The value of the Content-Disposition header you want to receive when you download the object using the signed URL. If you do not specify a value, the Content-Disposition header defaults to the value stored with OSS.'
+              response-cache-control:
+                type: string
+                description: 'The value of the Cache-Control header you want to receive when you download the object using the signed URL. If you do not specify a value, the Cache-Control header defaults to the value stored with OSS.'
+              If-None-Match:
+                type: string
+                description: 'The last known ETag value of the object. OSS returns the signed URL only if the ``If-None-Match`` header differs from the ETag value of the object on S3. If not, it returns a 304 "Not Modified" HTTP status.'
+              If-Modified-Since:
+                type: string
+                description: 'A timestamp in the HTTP date format (Mon, DD Month YYYY HH:MM:SS GMT). A signed URL is returned only if the object has been modified since the specified timestamp. If not, a 304 (Not Modified) HTTP status is returned.'
+    batchsigneds3upload_response:
+      required:
+        - results
+      type: object
+      description: The response to a Batch Generate Signed S3 Upload URLs operation.
+      properties:
+        results:
+          type: object
+          additionalProperties:
+            type: object
+            required:
+              - uploadKey
+              - urls
+            properties:
+              reason:
+                type: string
+                description: Describes an error that was encountered. Returned only if the signed URL request for that object failed.
+              status:
+                type: string
+                description: Returned only if the signed URL request for that object failed.
+              uploadExpiration:
+                type: string
+                description: 'The deadline to call [Complete Batch Upload to S3 Signed URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-signeds3upload-POST/) for the object. If not completed by this time, all uploaded data for this session will be discarded.'
+              uploadKey:
+                type: string
+                description: |
+                  An ID that uniquely identifies the upload session. It allows OSS to differentiate between fresh upload attempts from attempts to resume uploading data for an active upload session, in case of network interruptions. You must provide this value when:
+
+                  - Re-requesting chunk URLs for an active upload session. 
+                  - When calling the [Complete Batch Upload to S3 Signed URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-signeds3upload-POST/) operation to end an active upload session.
+              urlExpiration:
+                type: string
+                description: 'The date and time, in the ISO 8601 format, indicating when the signed URLs will expire.'
+              urls:
+                type: array
+                description: 'An array of signed URLs. For a single-part upload, this will only include a single URL. For a multipart upload, there will be one for each chunk of a multipart upload; the index of the URL in the array corresponds to the part number of the chunk.'
+                items:
+                  type: string
+    batchsigneds3upload_object:
+      required:
+        - requests
+      type: object
+      description: The request payload for a Batch Generate Signed S3 Upload URLs operation.
+      properties:
+        requests:
+          type: array
+          description: An array where each element is an object containing information needed to generate a signed S3 upload URL.
+          items:
+            type: object
+            required:
+              - objectKey
+            properties:
+              objectKey:
+                type: string
+                description: A URL-encoded human friendly name of the object to upload.
+              firstPart:
+                type: integer
+                description: The index of first chunk to be uploaded.
+              parts:
+                type: integer
+                description: 'The number of parts you intend to chunk the object for uploading. OSS will return that many signed URLs, one URL for each chunk. If you do not specify a value you''ll get only one URL to upload the entire object.'
+              uploadKey:
+                type: string
+                description: 'The ``uploadKey`` of a previously-initiated upload, in order to request more chunk upload URLs for the same upload. If you do not specify a value, OSS will initiate a new upload entirely.'
+    batchcompleteupload_object:
+      required:
+        - requests
+      type: object
+      description: The request payload for the Complete Batch Upload to S3 Signed URLs operation.
+      properties:
+        requests:
+          type: array
+          description: 'An array of objects, each of which represents an upload to complete.'
+          items:
+            type: object
+            required:
+              - objectKey
+              - uploadKey
+            properties:
+              objectKey:
+                type: string
+                description: The URL-encoded human friendly name of the object for which to complete an upload.
+              uploadKey:
+                type: string
+                description: The ID uniquely identifying the upload session that was returned when you obtained the signed upload URL.
+              size:
+                type: integer
+                description: 'The expected size of the object. If provided, OSS will check this against the object in S3 and return an error if the size does not match.'
+              eTags:
+                type: array
+                description: 'An array of eTags. S3 returns an eTag to each upload request, be it for a chunk or an entire file. For a single-part upload, this array contains the expected eTag of the entire object. For a multipart upload, this array contains the expected eTag of each part of the upload; the index of an eTag in the array corresponds to its part number in the upload. If provided, OSS will validate these eTags against the content in S3, and return an error if the eTags do not match.'
+                items:
+                  type: string
+              x-ads-meta-Content-Type:
+                type: string
+                description: The Content-Type value for the uploaded object to record within OSS.
+              x-ads-meta-Content-Disposition:
+                type: string
+                description: The Content-Disposition value for the uploaded object to record within OSS.
+              x-ads-meta-Content-Encoding:
+                type: string
+                description: The Content-Encoding value for the uploaded object to record within OSS.
+              x-ads-meta-Cache-Control:
+                type: string
+                description: The Cache-Control value for the uploaded object to record within OSS.
+              x-ads-user-defined-metadata:
+                type: string
+                description: |
+                  Custom metadata to be stored with the object, which can be retrieved later on download or when retrieving object details. Must be a JSON object that is less than 100 bytes.
+    batchcompleteupload_response:
+      required:
+        - results
+      type: object
+      description: The response to a Complete Batch Upload to S3 Signed URLs operation.
+      properties:
+        results:
+          type: object
+          description: 'A map of the returned results; each key in the map corresponds to an object key in the batch, and the value includes the results for that object.'
+          additionalProperties:
+            $ref: '#/components/schemas/batch_completed_results'
+    batch_completed_results:
+      type: object
+      description: The results returned by the Complete Batch Upload to S3 Signed URLs operation.
+      properties:
+        status:
+          type: string
+          description: |
+            If this attribute is not returned, completion has succeeded. If the value of this attribute is "error", completion failed.'
+        bucketKey:
+          type: string
+          description: The bucket key of the bucket the object was uploaded to.
+        objectKey:
+          type: string
+          description: The URL-encoded human friendly name of the object.
+        objectId:
+          type: string
+          description: An identifier (URN) that uniquely and persistently identifies the object.
+        size:
+          type: integer
+          description: 'The total amount of storage space occupied by the object, in bytes.'
+        contentType:
+          type: string
+          description: 'The format of the data stored within the object, expressed as a MIME type. This attribute is returned only if it was specified when the object was uploaded.'
+        contentDisposition:
+          type: string
+          description: The Content-Disposition value for the uploaded object as recorded within OSS. This attribute is returned only if it was specified when the object was uploaded.
+        contentEncoding:
+          type: string
+          description: The Content-Encoding value for the uploaded object as recorded within OSS. This attribute is returned only if it was specified when the object was uploaded.
+        cacheControl:
+          type: string
+          description: The Cache-Control value for the uploaded object as recorded within OSS. This attribute is returned only if it was specified when the object was uploaded.
+        parts:
+          type: array
+          description: 'An array containing the status of each part, indicating any issues with eTag or size mismatch issues.'
+          items:
+            type: object
+            properties:
+              firstPart:
+                type: integer
+                description: The index of the first part in the multipart upload.
+              status:
+                $ref: '#/components/schemas/status'
+              size:
+                type: integer
+                description: The size of the corresponding part detected in S3.
+              eTag:
+                type: string
+                description: The eTag of the detected part in S3.
+        reason:
+          type: string
+          description: 'The reason for the failure, if the status is ``error``.'
+    signeds3upload_response:
+      required:
+        - uploadKey
+        - urls
+      type: object
+      description: The response payload to a Generate Signed S3 Upload URL operation.
+      properties:
+        uploadKey:
+          type: string
+          description: |
+            An ID that uniquely identifies the upload session. It allows OSS to differentiate between fresh upload attempts from attempts to resume uploading data for an active upload session, in case of network interruptions. You must provide this value when:
+
+            - Re-requesting chunk URLs for an active upload session. 
+            - When calling the [Complete Upload to S3 Signed URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-signeds3upload-POST/) operation to end an active upload session.
+        urls:
+          type: array
+          description: 'An array of signed URLs. For a single-part upload, this will contain only one URL. For a multipart upload, there will be one for each chunk of a multipart upload; the index of the URL in the array corresponds to the part number of the chunk.'
+          items:
+            type: string
+        urlExpiration:
+          type: string
+          description: 'The date and time, in the ISO 8601 format, indicating when the signed URLs will expire.'
+        uploadExpiration:
+          type: string
+          description: 'The deadline to call [Complete Upload to S3 Signed URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-signeds3upload-POST/) for the object. If not completed by this time, all uploaded data for this session will be discarded.'
+    completes3upload_body:
+      required:
+        - uploadKey
+      type: object
+      description: The request payload for a Complete Upload to S3 Signed URL operation.
+      properties:
+        uploadKey:
+          type: string
+          description: 'The ID uniquely identifying the upload session that was returned when you called [Get S3 Signed Upload URL](/en/docs/data/v2/reference/http/buckets-:bucketKey-objects-:objectKey-signeds3upload-POST/).'
+        size:
+          type: integer
+          description: 'The expected size of the object. If provided, OSS will check this against the object in S3 and return an error if the size does not match.'
+        eTags:
+          type: array
+          description: 'An array of eTags. S3 returns an eTag to each upload request, be it for a chunk or an entire file. For a single-part upload, this array contains the expected eTag of the entire object. For a multipart upload, this array contains the expected eTag of each part of the upload; the index of an eTag in the array corresponds to its part number in the upload. If provided, OSS will validate these eTags against the content in S3, and return an error if the eTags do not match.'
+          items:
+            type: string
+    PolicyKey:
+      title: policyKey
+      x-stoplight:
+        id: 288f4f38318eb
+      type: string
+      default: transient
+      description: |-
+        Specifies the retention policy for the objects stored in the bucket. Possible values are: 
+                    
+        - ``transient`` - Objects are retained for 24 hours.
+        - ``temporary`` - Objects are retained for 30 days.
+        - ``persistent`` - Objects are retained until they are deleted.
+      enum:
+        - transient
+        - temporary
+        - persistent
+    region:
+      title: region
+      x-stoplight:
+        id: yjjcwdkrxykkc
+      type: string
+      enum:
+        - US
+        - EMEA
+        - APAC
+      description: |-
+        Specifies where the bucket containing the object stored. Possible values are:
+
+                - ``US`` - (Default) Data center for the US region.
+                - ``EMEA`` - Data center for the European Union, Middle East, and Africa.
+                - ``APAC`` -  (Beta) Data center for Australia.
+
+                **Note:** Beta features are subject to change. Please do not use in production environments.
+    access:
+      title: access
+      x-stoplight:
+        id: e4sb0u69u0uo5
+      type: string
+      enum:
+        - Read
+        - Write
+        - ReadWrite
+      description: 'Access for signed resource Acceptable values: read, write, readwrite Default value: read'
+    with:
+      title: with
+      description: |
+        **Not applicable for Head operation**
+        The optional information you can request for. To request more than one of the following, specify this parameter multiple times in the request.  Possible values: 
+
+        - ``createdDate`` 
+        - ``lastAccessedDate`` 
+        - ``lastModifiedDate`` 
+        - ``userDefinedMetadata``
+      type: string
+      enum:
+        - createdDate
+        - lastAccessedDate
+        - lastModifiedDate
+        - userDefinedMetadata
+    status:
+      title: status
+      x-stoplight:
+        id: cuyfz4812l1b2
+      type: string
+      description: |
+        Indicates whether this particular part uploaded to S3 is valid. Possible values are:
+
+        - ``Pending`` - No such part was uploaded to S3 for this index. 
+        - ``Unexpected`` - The eTag of the part in S3 does not match the one provided in the request. 
+        - ``TooSmall`` - A chunk uploaded to S3 is smaller than 5MB. Only the final chunk can be smaller than 5MB. 
+        - ``Unexpected+TooSmall`` - The chunk is both too small and has an eTag mismatch. 
+        - ``Ok`` - The chunk has no issues.'
+      enum:
+        - Pending
+        - Unexpected
+        - TooSmall
+        - Unexpected+TooSmall
+        - Ok
+    download_status:
+      title: download_status
+      x-stoplight:
+        id: bufzykd0rpk39
+      type: string
+      description: |
+        Indicates the upload status of the requested object. Possible values are:
+
+        - ``complete`` - The upload process is finished. If the object was uploaded in chunks, assembly of chunks into the final object is also complete.
+        - ``chunked`` - The object was uploaded in chunks, but assembly of chunks into the final object is still pending. `public-resource-fallback`` = ``false``
+        - ``fallback`` - The object was uploaded in chunks, but assembly of chunks into the final object is still pending. `public-resource-fallback`` = ``true`` 
+      enum:
+        - complete
+        - chunked
+        - fallback
+    permission_access:
+      title: permission_access
+      x-stoplight:
+        id: 5rtb0xo1tipoq
+      type: string
+      description: |
+        Specifies the level of permission the application has. Possible values are:
+
+        - ``full`` - Unrestricted access to objects within the bucket.
+        - ``read_only`` - Read only access to the objects within the bucket. Modification and deletion of objects is not allowed.
+      enum:
+        - full
+        - read
+  responses:
+    BAD_REQUEST:
+      description: OSS was unable to process the request. The syntax of the request is malformed or the request is missing a required header. Do not repeat the request without fixing the issue. The response body may indicate what is wrong with the request
+      content: {}
+    FORBIDDEN:
+      description: The request was successfully validated but lacking the required permissions. Verify your credentials and permissions before you send this request again.
+      content: {}
+    INTERNAL_SERVER_ERROR:
+      description: 'Internal failure while processing the request, reason depends on error.'
+      content: {}
+    NOT_FOUND:
+      description: ' The requested resource could not be found. Verify the IDs of the resources you requested before you send this request again.'
+      content: {}
+    UNAUTHORIZED:
+      description: The supplied authorization header was not valid or the supplied token scope was not acceptable. Verify authentication and try again.
+      content: {}
+    RATE_LIMIT_EXCEEDED:
+      description: Rate limit exceeded. Please wait for a few moments before retrying. Increase the wait time with each attempt before trying again.
+  parameters:
+    bucketKey:
+      name: bucketKey
+      in: path
+      description: The bucket key of the bucket that contains the objects you are operating on.
+      required: true
+      schema:
+        pattern: '^[-_.a-z0-9]{3,128}$'
+        type: string
+    objectKey:
+      name: objectKey
+      in: path
+      description: The URL-encoded human friendly name of the object.
+      required: true
+      schema:
+        type: string
+    x-ads-region:
+      name: x-ads-region
+      in: header
+      description: |
+        Specifies where the bucket must be stored. Possible values are:
+        - ``US`` - (Default) Data center for the US region.
+        - ``EMEA`` - Data center for the European Union, Middle East, and Africa.
+        - ``APAC`` -  (Beta) Data center for Australia.
+        **Note:** Beta features are subject to change. Please do not use in production environments.
+      schema:
+        $ref: '#/components/schemas/region'
+    x-ads-region-4-object:
+      name: x-ads-region
+      in: header
+      description: |
+        Specifies where the bucket containing the object stored. Possible values are:
+
+        - ``US`` - (Default) Data center for the US region.
+        - ``EMEA`` - Data center for the European Union, Middle East, and Africa.
+        - ``APAC`` -  (Beta) Data center for Australia.
+
+        **Note:** Beta features are subject to change. Please do not use in production environments.
+      schema:
+        $ref: '#/components/schemas/region'
+    region:
+      name: region
+      in: query
+      description: |
+        Specifies where the bucket containing the object stored. Possible values are:
+
+        - ``US`` - (Default) Data center for the US region.
+        - ``EMEA`` - Data center for the European Union, Middle East, and Africa.
+        - ``APAC`` -  (Beta) Data center for Australia.
+
+        **Note:** Beta features are subject to change. Please do not use in production environments.
+      schema:
+        $ref: '#/components/schemas/region'
+    limit:
+      name: limit
+      in: query
+      description: |
+        The number of items you want per page.
+        Acceptable values = 1-100. Default = 10.
+      schema:
+        type: integer
+        default: 10
+    startAt:
+      name: startAt
+      in: query
+      description: |
+        The ID of the last item that was returned in the previous result set.  It enables the system to return subsequent items starting from the next one after the specified ID.
+      schema:
+        type: string
+    If-None-Match:
+      name: If-None-Match
+      in: header
+      description: 'The last known ETag value of the object. OSS returns the requested data  only if the ``If-None-Match`` header differs from the ETag value of the object on OSS, which indicates that the object on OSS is newer. If not, it returns a 304 "Not Modified" HTTP status.'
+      schema:
+        type: string
+    If-Modified-Since:
+      name: If-Modified-Since
+      in: header
+      description: |
+        A timestamp in the HTTP date format (Mon, DD Month YYYY HH:MM:SS GMT). The requested data is returned only if the object has been modified since the specified timestamp. If not, a 304 (Not Modified) HTTP status is returned.
+      schema:
+        type: string
+        format: date
+    access:
+      name: access
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/access'
+    with:
+      name: with
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/with'
+  requestBodies: {}
+  securitySchemes:
+    oauth2_application:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: /authentication/v1/authenticate
+          scopes:
+            'data:read': The application will be able to read the end user’s data within the Autodesk ecosystem.
+            'data:write': 'The application will be able to create, update, and delete data on behalf of the end user within the Autodesk ecosystem.'
+            'data:create': The application will be able to create data on behalf of the end user within the Autodesk ecosystem.
+            'bucket:delete': The application will be able to delete an OSS bucket it will own.
+            'bucket:create': The application will be able to create an OSS bucket it will own.
+            'bucket:read': The application will be able to read the metadata and list contents for OSS buckets that it has access to.
+            'bucket:update': The application will be able to set permissions and entitlements for OSS buckets that it has permission to modify.
+      x-authentication_context: application context required
+    3-legged:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://developer.api.autodesk.com/authentication/v2/authorize'
+          tokenUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          refreshUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          scopes:
+            'data:read': read your data
+            'data:write': modify your data
+            'data:create': create new data
+      x-authentication_context: user context required
+      description: User context required.
+    2-legged:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://developer.api.autodesk.com/authentication/v2/token'
+          scopes:
+            'data:read': read application accessible data
+            'data:write': write application accessible data
+            'data:create': create application accessible data
+      x-authentication_context: application context required
+      description: Application context required.
+x-adsk-host-environments:
+  dev: 'https://developer-dev.api.autodesk.com'
+  stg: 'https://developer-stg.api.autodesk.com'
+  prod: 'https://developer.api.autodesk.com'
