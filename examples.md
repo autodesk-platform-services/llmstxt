@@ -320,7 +320,7 @@ html
     <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { height: 100vh; overflow: hidden; }
+        body { height: 100vh; overflow: hidden; font-family: Arial, sans-serif;}
         .header { padding: 4px; background: #3f51b5; color: white; display: flex; align-items: center; gap: 16px; height: 48px; }
         .header h1 { flex: 1; font-size: 16px; font-weight: normal; }
         .nav { display: flex; align-items: center; gap: 16px; }
