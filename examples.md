@@ -306,3 +306,142 @@ your-private-key
     }
 }
 ```
+
+# Autodesk Forge Viewer SDK – Example code
+
+html
+```
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="data:,">
+	<script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+	<link href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" rel="stylesheet">
+</head>
+
+<body style="margin:0; overflow-y: hidden;">	
+	<div id="Viewer"></div>
+</body>
+```
+
+js
+```
+const AV = Autodesk.Viewing;
+const div = document.getElementById("Viewer");
+
+async function startViewer(urn) {
+	const token = (await (await fetch("/api/token")).json()).access_token;
+
+	AV.Initializer({ env: "AutodeskProduction2", api: 'streamingV2', accessToken: token }, () => {
+        const options = { extensions: ["Autodesk.SmartSection"] }; // more extensions go here
+        const viewer = new AV.Private.GuiViewer3D(div, options);
+        viewer.start();
+        viewer.setTheme("light-theme");
+
+        // now, load a model urn
+        AV.Document.load(`urn:${urn}`, (doc) => {
+            const viewables = doc.getRoot().getDefaultGeometry();
+            viewer.loadDocumentNode(doc, viewables).then(async (model)=>{
+				await viewer.waitForLoadDone({ propDb: true, geometry: true });
+			});
+        });
+    });
+}
+const encodedUrn = "dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLjIzWFR0R0pIUzJld1FxdDVOS1ppRGc";
+startViewer(encodedUrn);
+```
+
+# Autodesk APS File upload to OSS
+
+For uploading files to OSS Bucket storage using 2-legged, you must use the "signed url via s3" upload sequence (refer to the 'signeds3upload' code below).
+
+python
+```
+import requests
+import os
+import json
+import base64
+
+class APSClient:
+    def __init__(self):
+        self.client_id = os.getenv('APS_CLIENT_ID')
+        self.client_secret = os.getenv('APS_CLIENT_SECRET')
+        self.bucket_key = os.getenv('APS_BUCKET_KEY')
+        self.base_url = 'https://developer.api.autodesk.com'
+        self._token = None
+
+    def token(self):
+        if self._token:
+            return self._token
+        
+        url = f'{self.base_url}/authentication/v2/token'
+        data = {
+            'grant_type': 'client_credentials',
+            'scope': 'data:read data:write'
+        }
+        response = requests.post(url, data=data, auth=(self.client_id, self.client_secret))
+        token_data = response.json()
+        self._token = token_data['access_token']
+        return self._token
+
+    def ensure_bucket(self):
+        headers = {'Authorization': f'Bearer {self.token()}'}
+        url = f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/details'
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 404:
+            create_url = f'{self.base_url}/oss/v2/buckets'
+            payload = {
+                'bucketKey': self.bucket_key,
+                'policyKey': 'transient'
+            }
+            requests.post(create_url, json=payload, headers=headers)
+
+    def upload(self, file_name, file_content):
+        self.ensure_bucket()
+        headers = {'Authorization': f'Bearer {self.token()}'}
+        
+        # Step 1: POST /signeds3upload
+        url = f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/objects/{file_name}/signeds3upload'
+        response = requests.post(url, headers=headers)
+        s3_data = response.json()
+        
+        # Step 2: PUT to S3
+        s3_response = requests.put(s3_data['uploadKey'], data=file_content)
+        
+        # Step 3: GET /signeds3upload to finalize
+        finalize_response = requests.get(url, headers=headers)
+        object_data = finalize_response.json()
+        
+        return object_data
+
+    def translate(self, urn):
+        headers = {
+            'Authorization': f'Bearer {self.token()}',
+            'Content-Type': 'application/json'
+        }
+        
+        url = f'{self.base_url}/modelderivative/v2/designdata/job'
+        payload = {
+            'input': {'urn': urn},
+            'output': {
+                'formats': [{
+                    'type': 'svf2',
+                    'views': ['2d', '3d']
+                }]
+            }
+        }
+        
+        response = requests.post(url, json=payload, headers=headers)
+        return response.json()
+
+    def status(self, urn):
+        headers = {'Authorization': f'Bearer {self.token()}'}
+        url = f'{self.base_url}/modelderivative/v2/designdata/{urn}/manifest'
+        response = requests.get(url, headers=headers)
+        return response.json()
+
+    def list(self):
+        headers = {'Authorization': f'Bearer {self.token()}'}
+        url = f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/objects'
+        response = requests.get(url, headers=headers)
+        return response.json() 
+```
