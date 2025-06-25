@@ -311,53 +311,124 @@ your-private-key
 
 html
 ```
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" href="data:,">
-	<script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
-	<link href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" rel="stylesheet">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>APS Model Viewer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { height: 100vh; overflow: hidden; }
+        .header { padding: 4px; background: #3f51b5; color: white; display: flex; align-items: center; gap: 16px; height: 48px; }
+        .header h1 { flex: 1; font-size: 16px; font-weight: normal; }
+        .nav { display: flex; align-items: center; gap: 16px; }
+        .adsk-viewing-viewer { height: calc(100vh - 48px) !important; }
+        #fileInput { display: none; }
+        #status { font-size: 14px; min-width: 80px; }
+        select, button { padding: 8px; border: none; border-radius: 4px; }
+        button { background: #2196f3; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        select { background: white; }
+    </style>
 </head>
+<body>
+    <div class="header">
+        <h1>APS Model Viewer</h1>
+        <div class="nav">
+            <input type="file" id="fileInput">
+            <span id="status"></span>
+            <select id="modelSelect" onchange="loadModel()">
+                <option value="">Select Model</option>
+            </select>
+            <button onclick="$('fileInput').click()">
+                <i class="material-icons">upload</i> Upload
+            </button>
+        </div>
+    </div>
+    <div id="viewer"></div>
 
-<body style="margin:0; overflow-y: hidden;">	
-	<div id="Viewer"></div>
-</body>
-```
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+    <script>
+        const $ = id => document.getElementById(id);
+        const api = async (url, opt = {}) => (await fetch(url, opt)).json();
+        const load = urn => Autodesk.Viewing.Document.load(`urn:${urn}`, d => viewer.loadDocumentNode(d, d.getRoot().getDefaultGeometry()));
+        let viewer, token;
 
-js
-```
-const AV = Autodesk.Viewing;
-const div = document.getElementById("Viewer");
+        async function init() {
+            token = (await api('/api/token')).access_token;
+            Autodesk.Viewing.Initializer({ env: 'AutodeskProduction', api: 'streamingV2', accessToken: token }, () => {
+		const options = { extensions: ["Autodesk.SmartSection"] }; // more extensions go here
+                viewer = new Autodesk.Viewing.GuiViewer3D($('viewer'), options);
+                viewer.start();
+	        viewer.setTheme("light-theme");
 
-async function startViewer(urn) {
-	const token = (await (await fetch("/api/token")).json()).access_token;
-
-	AV.Initializer({ env: "AutodeskProduction2", api: 'streamingV2', accessToken: token }, () => {
-        const options = { extensions: ["Autodesk.SmartSection"] }; // more extensions go here
+            });
+            list();
+        }
+        
         const viewer = new AV.Private.GuiViewer3D(div, options);
         viewer.start();
-        viewer.setTheme("light-theme");
 
-        // now, load a model urn
-        AV.Document.load(`urn:${urn}`, (doc) => {
-            const viewables = doc.getRoot().getDefaultGeometry();
-            viewer.loadDocumentNode(doc, viewables).then(async (model)=>{
-				await viewer.waitForLoadDone({ propDb: true, geometry: true });
-			});
-        });
-    });
-}
-const encodedUrn = "dXJuOmFkc2sud2lwcHJvZDpmcy5maWxlOnZmLjIzWFR0R0pIUzJld1FxdDVOS1ppRGc";
-startViewer(encodedUrn);
+        async function list() {
+            const data = await api('/api/list');
+            const s = $('modelSelect');
+            s.innerHTML = '<option value="">Select Model</option>';
+            data.items?.forEach(item => {
+                const o = document.createElement('option');
+                o.value = btoa(item.objectId);
+                o.textContent = item.objectKey;
+                s.appendChild(o);
+            });
+        }
+
+        async function upload(file) {
+            const fd = new FormData();
+            fd.append('file', file);
+            const data = await api('/api/upload', { method: 'POST', body: fd });
+            monitor(data.urn);
+            list();
+        }
+
+        async function monitor(urn) {
+            const st = $('status');
+            for (let i = 0; i < 30; i++) {
+                const d = await api(`/api/status/${urn}`);
+                if (d.status === 'success') {
+                    st.textContent = 'Complete';
+                    load(urn);
+                    break;
+                }
+                if (d.status === 'failed') {
+                    st.textContent = 'Failed';
+                    break;
+                }
+                st.textContent = (d.progress?.match(/\d+/)?.[0] || '...') + '%';
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+
+        function loadModel() {
+            const urn = $('modelSelect').value;
+            if (urn) load(urn);
+        }
+
+        $('fileInput').onchange = e => e.target.files[0] && upload(e.target.files[0]);
+        init();
+    </script>
+</body>
+</html> 
 ```
+
 
 # Autodesk APS File upload to OSS
 
 For uploading files to OSS Bucket storage using 2-legged, you must use the "signed url via s3" upload sequence (refer to the 'signeds3upload' code below).
 
-python
+utils.py
 ```
 import requests
 import os
-import json
 import base64
 
 class APSClient:
@@ -371,77 +442,84 @@ class APSClient:
     def token(self):
         if self._token:
             return self._token
-        
-        url = f'{self.base_url}/authentication/v2/token'
-        data = {
-            'grant_type': 'client_credentials',
-            'scope': 'data:read data:write'
-        }
-        response = requests.post(url, data=data, auth=(self.client_id, self.client_secret))
-        token_data = response.json()
-        self._token = token_data['access_token']
+        response = requests.post(f'{self.base_url}/authentication/v2/token', 
+                               data={'grant_type': 'client_credentials', 'scope': 'data:read data:write bucket:create'}, 
+                               auth=(self.client_id, self.client_secret))
+        self._token = response.json()['access_token']
         return self._token
 
     def ensure_bucket(self):
         headers = {'Authorization': f'Bearer {self.token()}'}
-        url = f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/details'
-        response = requests.get(url, headers=headers)
-        
-        if response.status_code == 404:
-            create_url = f'{self.base_url}/oss/v2/buckets'
-            payload = {
-                'bucketKey': self.bucket_key,
-                'policyKey': 'transient'
-            }
-            requests.post(create_url, json=payload, headers=headers)
+        response = requests.get(f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/details', headers=headers)
+        if response.status_code in [403, 404]:
+            create_headers = {**headers, 'x-ads-region': 'US'} # US, EMEA, AUS
+            requests.post(f'{self.base_url}/oss/v2/buckets', 
+                         json={'bucketKey': self.bucket_key, 'policyKey': 'transient'}, headers=create_headers)
 
     def upload(self, file_name, file_content):
         self.ensure_bucket()
         headers = {'Authorization': f'Bearer {self.token()}'}
-        
-        # Step 1: POST /signeds3upload
         url = f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/objects/{file_name}/signeds3upload'
-        response = requests.post(url, headers=headers)
-        s3_data = response.json()
         
-        # Step 2: PUT to S3
-        s3_response = requests.put(s3_data['uploadKey'], data=file_content)
+        s3_data = requests.get(url, headers=headers).json()
+        requests.put(s3_data['urls'][0], data=file_content)
         
-        # Step 3: GET /signeds3upload to finalize
-        finalize_response = requests.get(url, headers=headers)
-        object_data = finalize_response.json()
-        
-        return object_data
+        return requests.post(url, json={'uploadKey': s3_data['uploadKey']}, 
+                           headers={**headers, 'Content-Type': 'application/json'}).json()
 
     def translate(self, urn):
-        headers = {
-            'Authorization': f'Bearer {self.token()}',
-            'Content-Type': 'application/json'
-        }
-        
-        url = f'{self.base_url}/modelderivative/v2/designdata/job'
-        payload = {
-            'input': {'urn': urn},
-            'output': {
-                'formats': [{
-                    'type': 'svf2',
-                    'views': ['2d', '3d']
-                }]
-            }
-        }
-        
-        response = requests.post(url, json=payload, headers=headers)
-        return response.json()
+        return requests.post(f'{self.base_url}/modelderivative/v2/designdata/job',
+                           json={'input': {'urn': base64.b64encode(urn.encode()).decode()},
+                                'output': {'formats': [{'type': 'svf2', 'views': ['2d', '3d']}]}},
+                           headers={'Authorization': f'Bearer {self.token()}', 'Content-Type': 'application/json'}).json()
 
     def status(self, urn):
-        headers = {'Authorization': f'Bearer {self.token()}'}
-        url = f'{self.base_url}/modelderivative/v2/designdata/{urn}/manifest'
-        response = requests.get(url, headers=headers)
-        return response.json()
+        encoded_urn = base64.b64encode(urn.encode()).decode()
+        return requests.get(f'{self.base_url}/modelderivative/v2/designdata/{encoded_urn}/manifest',
+                          headers={'Authorization': f'Bearer {self.token()}'}).json()
 
     def list(self):
-        headers = {'Authorization': f'Bearer {self.token()}'}
-        url = f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/objects'
-        response = requests.get(url, headers=headers)
-        return response.json() 
+        return requests.get(f'{self.base_url}/oss/v2/buckets/{self.bucket_key}/objects',
+                          headers={'Authorization': f'Bearer {self.token()}'}).json() 
 ```
+
+server.py
+```
+from flask import Flask, request, jsonify, send_file
+from dotenv import load_dotenv
+import base64
+from utils import APSClient
+
+load_dotenv()
+
+app = Flask(__name__)
+aps_client = APSClient()
+
+@app.route('/api/token')
+def get_token():
+    return jsonify({'access_token': aps_client.token()})
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    result = aps_client.upload(file.filename, file.read())
+    object_id = result['objectId']
+    aps_client.translate(object_id)
+    return jsonify({'objectId': object_id, 'urn': base64.b64encode(object_id.encode()).decode()})
+
+@app.route('/api/status/<urn>')
+def get_status(urn):
+    return jsonify(aps_client.status(base64.b64decode(urn).decode()))
+
+@app.route('/api/list')
+def list_objects():
+    return jsonify(aps_client.list())
+
+@app.route('/')
+def index():
+    return send_file('viewer.html')
+
+if __name__ == '__main__':
+    app.run(debug=False, port=8080) 
+```
+
