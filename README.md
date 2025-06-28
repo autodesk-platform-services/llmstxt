@@ -67,10 +67,24 @@ APS_PRIVATE_KEY="--- ....................... 6FsPjyf\n-----END RSA PRIVATE KEY--
 - Use prompt-driven coding to build a command line tool, that let's you upload and view a Revit model in a browser using APS.  We'll use python to do the file upload, Model Derivative API to convert RVT to SVF2, and use the Viewer SDK inside our custom webpage. Let's call it `upload-and-view.py` example.
 - Switch to Agent mode
 - Try asking:
-_“create a python cli tool script, use APS rest calls and ignore error checking and comments.  create an 'upload' command and a 'host' command.  first, Upload a .rvt (or .nwd, .dwg, etc) file to APS (a bucket) using APS key/secret from a .env file (APS_CLIENT_ID, APS_CLIENT_SECRET, APS_BUCKET_DEFAULT), next convert it to SVF2 using model derivative API and return the URN and access token.  Second command, host a viewer.html webpage, where a browser will use viewer sdk to load that URN and pull a fresh 2legged (2LO) access token from this host server.”_
-  
+`Create a Flask server with minimal code without comments or error checking.  Use APS APIs to provide endpoints /api/token, /api/upload, /api/status/<urn>, /api/list using 2-legged OAuth credentials and APS_BUCKET_KEY stored in a sample.env. Put APS logic in utils.py class (APSClient with methods for token, upload, translate, status, list, ensure_bucket), server code in server.py. Use proper APS signed S3 upload workflow (GET /signeds3upload, PUT S3, then finally POST /signeds3upload as per the docs), translate to SVF2 with base64-encoded URNs.`
+
+`Create viewer.html with MDL lite css component featuring top bar (title, translation status label, model dropdown, upload button) and Autodesk Viewer filling remaining screen space. When the model succeeds in translating, then load the models urn.  Write optimized, minimal code with async/await, without comments or error checking. Final result: complete 3D model upload, translation, and viewing application. Create a readme.md file with complete newbie instructions on signing up for APS, installing python and where to find sample revit models from autodesk`
+
+Three Parts...
+
+Step 1 - Create the Server https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-1-create-server.mp4
+<a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-1-create-server.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/725677cc-6f62-4c35-b8e7-012490466086" /></a>
+
+Step 2 - Create the Viewer https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-2-create-webpage.mp4
+<a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-2-create-webpage.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/4089f084-80fc-4ce3-a142-e9ebb11c0c05" /></a>
+
+Step 3 - `Uh-oh`, how to fix the upload bug with vibe-coding https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4
+<a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/725677cc-6f62-4c35-b8e7-012490466086" /></a>
+
+
 ```
-Video to come
+Explanation of these three to come
 ```
 
 
