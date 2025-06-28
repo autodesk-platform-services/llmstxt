@@ -67,11 +67,13 @@ APS_PRIVATE_KEY="--- ....................... 6FsPjyf\n-----END RSA PRIVATE KEY--
 - Use prompt-driven coding to build a command line tool, that let's you upload and view a Revit model in a browser using APS.  We'll use python to do the file upload, Model Derivative API to convert RVT to SVF2, and use the Viewer SDK inside our custom webpage. Let's call it `upload-and-view.py` example.
 - Switch to Agent mode
 - Try asking:
+  
 `Create a Flask server with minimal code without comments or error checking.  Use APS APIs to provide endpoints /api/token, /api/upload, /api/status/<urn>, /api/list using 2-legged OAuth credentials and APS_BUCKET_KEY stored in a sample.env. Put APS logic in utils.py class (APSClient with methods for token, upload, translate, status, list, ensure_bucket), server code in server.py. Use proper APS signed S3 upload workflow (GET /signeds3upload, PUT S3, then finally POST /signeds3upload as per the docs), translate to SVF2 with base64-encoded URNs.`
 
 `Create viewer.html with MDL lite css component featuring top bar (title, translation status label, model dropdown, upload button) and Autodesk Viewer filling remaining screen space. When the model succeeds in translating, then load the models urn.  Write optimized, minimal code with async/await, without comments or error checking. Final result: complete 3D model upload, translation, and viewing application. Create a readme.md file with complete newbie instructions on signing up for APS, installing python and where to find sample revit models from autodesk`
 
-Three Parts...
+Below is a video, of me using this prompt.  I ask it in two parts, create the server and test it, then create the viewer and test.  I encounter an error "uh oh", and then I show you how to use the vibe-coding feedback loop to fix it.  Just copy and paste in the error and let Cursor fix it for you...  Click on the 3 images below for each video...
+
 
 Step 1 - Create the Server https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-1-create-server.mp4
 <a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-1-create-server.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/725677cc-6f62-4c35-b8e7-012490466086" /></a>
