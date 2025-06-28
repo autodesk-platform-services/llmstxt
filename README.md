@@ -80,7 +80,7 @@ Step 2 - Create the Viewer https://public-blogs.s3.us-west-2.amazonaws.com/sview
 <a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-2-create-webpage.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/4089f084-80fc-4ce3-a142-e9ebb11c0c05" /></a>
 
 Step 3 - `Uh-oh`, how to fix the upload bug with vibe-coding https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4
-<a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4"><img width="1368" alt="Image" src=https://github.com/user-attachments/assets/7aab77ea-3be5-43c6-bdc7-6f0c0bfa2b6e" /></a>
+<a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/7aab77ea-3be5-43c6-bdc7-6f0c0bfa2b6e" /></a>
 
 ```
 Explanation of these three to come
