@@ -1,0 +1,2960 @@
+# Autodesk APS GraphQLDocumentation - AEC DataModel and DataExchange APIs 
+## overview.md
+
+# AEC Data Model API
+
+## About AEC Data Model
+
+## Common uses
+
+## Next steps
+
+# Terms of service
+
+> The AEC Data Model API, is a GraphQL-based API that provides the ability to directly interact with granular AEC data in the cloud without the need of building custom plug-ins for the desktop authoring tools like Revit, Civil 3D, Plant3D and other AEC connected design applications.
+
+
+---
+
+## aec-onboarding.md
+
+# Onboarding to AEC Data Model
+
+## Activate your ACC Account to extract data to AEC Data Model
+
+### Offboarding
+
+> This topic outlines the requirements to get started with onboarding. If you have an Autodesk Docs subscription, you can enable your ACC account to extract data to AEC Data Model at no additional cost. Access to this functionality is being rolled out and will be available in the account settings in the coming days for you to enable.
+
+
+---
+
+## about-graphql.md
+
+# About GraphQL
+
+## Examples
+
+### Example 1 - Query
+
+### Example 2 - Mutation
+
+> GraphQL is an open-source query language for APIs that was developed by Facebook as an alternative to REST API. It was released to the public in 2015 and hosted by the Linux Foundation atâ¯GraphQL.org.
+
+## Code Examples
+
+```
+query HeroNameAndFriends { hero { name friends { name } } }
+```
+
+```
+{"data":{"hero":{"name":"R2-D2","friends":[{"name":"Luke Skywalker"},{"name":"Han Solo"},{"name":"Leia Organa"}]}}}
+```
+
+```
+mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) { createReview(episode: $ep, review: $review) { stars commentary } } Variables: { "ep":"JEDI", "review":{ "stars":5, "commentary":"This is a great movie!" } }
+```
+
+```
+{"data":{"createReview":{"stars":5,"commentary":"This is a great movie!"}}}
+```
+
+```
+query HeroNameAndFriends { hero { name friends { name } } }
+```
+
+```
+{"data":{"hero":{"name":"R2-D2","friends":[{"name":"Luke Skywalker"},{"name":"Han Solo"},{"name":"Leia Organa"}]}}}
+```
+
+```
+mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) { createReview(episode: $ep, review: $review) { stars commentary } } Variables: { "ep":"JEDI", "review":{ "stars":5, "commentary":"This is a great movie!" } }
+```
+
+```
+{"data":{"createReview":{"stars":5,"commentary":"This is a great movie!"}}}
+```
+
+
+---
+
+## region-support.md
+
+# Regions Support
+
+> AEC Data Models are hosted on the Autodesk Construction Cloud (ACC) platform across multiple regions. The table below lists the currently supported regions.
+
+
+---
+
+## construct.md
+
+# API Constructs
+
+> This section defines important data constructs that you will come across in AEC Data Model API:
+
+
+---
+
+## capability.md
+
+# API Capabilities
+
+> Using the AEC Data Model API, you can perform the following actions:
+
+
+---
+
+## usage.md
+
+# Using the AEC Data Model API
+
+## Endpoint
+
+## Obtain a 3-Legged access token to authenticate queries
+
+## Executing GraphQL queries
+
+### Request
+
+### Response
+
+## Specifying the Content Type Header
+
+> To access the AEC Data Model API, follow these steps:
+
+## Code Examples
+
+```
+data:read data:create data:write
+```
+
+```
+curl -v 'https://developer.api.autodesk.com/aec/graphql' \ -X 'POST' \ -H 'Authorization: Bearer AuIPTf4KYLTYGVnOHQ0cuolwCW2a' \ -H 'Content-Type: application/graphql' \ -d '{ hubs { results { name } } }'
+```
+
+```
+{"data":{"hubs":{"results":[{"name":"Autodesk-Forge"},{"name":"ME-FLC"},{"name":"ACC-Cloud-Team"},{"name":"PIM-ME-Release"}]}}}
+```
+
+```
+axios({ method: 'POST', url: '&lt;GraphQL endpoint&gt;', data: { query: `{ hubs { results { name } } }` } })
+```
+
+```
+curl -v 'https://developer.api.autodesk.com/aec/graphql' \ -X 'POST' \ -H 'Authorization: Bearer AuIPTf4KYLTYGVnOHQ0cuolwCW2a' \ -H 'Content-Type: application/graphql' \ -d '{ hubs { results { name } } }'
+```
+
+```
+{"data":{"hubs":{"results":[{"name":"Autodesk-Forge"},{"name":"ME-FLC"},{"name":"ACC-Cloud-Team"},{"name":"PIM-ME-Release"}]}}}
+```
+
+```
+axios({ method: 'POST', url: '&lt;GraphQL endpoint&gt;', data: { query: `{ hubs { results { name } } }` } })
+```
+
+
+---
+
+## stdfiltering.md
+
+# Standard Filtering Capabilities
+
+# Supported Filtering Options
+
+# Compound Filtering Options
+
+# Matching Multiple Values
+
+# Standard Filtering Equivalent of RSQL
+
+# Sample Queries
+
+# Special Considerations for ElementGroup Filters
+
+## fileUrn:
+
+## name:
+
+> The AEC Data Model API provides a set of standard filtering options to enable filtering expressions as a core capability. They provide a simpler method for applying commonly-used filters, and can be used either as an alternative to or combined with Advanced Filtering Capabilities RSQL.
+These standard filtering options are available for ElementGroup and Element queries.
+
+## Code Examples
+
+```
+{ ..., "filter": { "nameWithComparator": {"name": "Pipes", "comparator": "CONTAINS"} ... }
+```
+
+```
+{ ..., "filter": { "name": "2.5\" x 5\" rectangular (Orange)" "properties": [ { "name": "Family Name", "value": "Rectangular Mullion" } { "id": "autodesk.revit.parameter:parameter.elementContext-1.0.0", "value": "Instance" } ] "references": { "name": "Type", "referencedId": "YWVjZX5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ351LW5jRFM3Z1E2R2hwQjNyZ1pYS2VRX2UzPLIz" } "createdBy": "first.last@autodesk.com" }, ... }
+```
+
+```
+{ ..., "filter": { "fileUrn": ["urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ", "urn:adsk.wipstg:dm.lineage:R8YVGN61QDaLElL0YSfkKg"] ... }
+```
+
+```
+{ ..., "filter": { "fileUrn": "urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ", "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "name": "Snowdon Towers East.rvt", "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "name": ["Snowdon Towers East.rvt", "Snowdon Towers West.rvt"] ... }
+```
+
+```
+{ ..., "filter": { "nameWithComparator": {"name": "Pipes", "comparator": "CONTAINS"} ... }
+```
+
+```
+{ ..., "filter": { "name": "2.5\" x 5\" rectangular (Orange)" "properties": [ { "name": "Family Name", "value": "Rectangular Mullion" } { "id": "autodesk.revit.parameter:parameter.elementContext-1.0.0", "value": "Instance" } ] "references": { "name": "Type", "referencedId": "YWVjZX5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ351LW5jRFM3Z1E2R2hwQjNyZ1pYS2VRX2UzPLIz" } "createdBy": "first.last@autodesk.com" }, ... }
+```
+
+```
+{ ..., "filter": { "fileUrn": ["urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ", "urn:adsk.wipstg:dm.lineage:R8YVGN61QDaLElL0YSfkKg"] ... }
+```
+
+```
+{ ..., "filter": { "fileUrn": "urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ", "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "name": "Snowdon Towers East.rvt", "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "name": ["Snowdon Towers East.rvt", "Snowdon Towers West.rvt"] ... }
+```
+
+
+---
+
+## advfiltering.md
+
+# Advanced Filtering Using RSQL
+
+# Supported operators
+
+# Compound operations
+
+# Examples
+
+# Special Considerations for ElementGroup Filters
+
+## metadata.fileUrn:
+
+## metadata.name:
+
+> AEC Data Model APIâs filtering expressions are influenced by the RESTful Service Query Language (RSQL), which is used to define filter expressions to limit the results for REST endpoints. Theâ¯filterâ¯query string parameters used with the AEC Data Model API endpoints require filter expressions similar to RSQL.
+
+## Code Examples
+
+```
+{ ..., "filter": { "query": "metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ' or metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:R8YVGN61QDaLElL0YSfkKg'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ' and metadata.createdBy.email=='first.last@autodesk.com'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ'" "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt' and metadata.createdBy.email=='first.last@autodesk.com'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt'", "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt'", "name": "Snowdon Towers West.rvt" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt' or metadata.createdBy.email=='first.last@autodesk.com'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ' or metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:R8YVGN61QDaLElL0YSfkKg'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ' and metadata.createdBy.email=='first.last@autodesk.com'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.fileUrn=='urn:adsk.wipstg:dm.lineage:u-ncDS7gX3ZhpB3rgZXKeQ'" "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt' and metadata.createdBy.email=='first.last@autodesk.com'" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt'", "createdBy": "first.last@autodesk.com" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt'", "name": "Snowdon Towers West.rvt" ... }
+```
+
+```
+{ ..., "filter": { "query": "metadata.name=='Snowdon Towers East.rvt' or metadata.createdBy.email=='first.last@autodesk.com'" ... }
+```
+
+
+---
+
+## pagination.md
+
+# Pagination
+
+## Step 1: Retrieving the first page
+
+## Step 2: Navigate to the next page using a cursor
+
+## Usage
+
+## Page limit
+
+> Pagination is a technique used to manage and display large datasets by dividing them into smaller and manageable pages. It allows users or applications to navigate through data incrementally, preventing information overload.
+
+## Code Examples
+
+```
+query GetProjects($hubId: ID!) { projects(hubId: $hubId, pagination:{limit:3}) { pagination { cursor } results { id name alternativeIdentifiers{ externalProjectId } } } }
+```
+
+```
+{"hubId":"b.03f98b13-ec95-461b-b945-765f496165c1"}
+```
+
+```
+{"data":{"projects":{"pagination":{"cursor":"Y3Vyc34xfjM"},"results":[{"id":"YWltcHJvan5iLjAzZjk4YjEzLWVjOTUtNDYxYi1iOTQ1LTc2NWY0OTYxNjVjMX5iLjI1MTg2MzE1LWIyNWMtNDkxMC05MzkxLTllMGE4ZjhmNzA5Zg","name":"JM AEC Data Model Samples","alternativeIdentifiers":{"externalProjectId":"b.25186315-b25c-4910-9391-9e0a8f8f709f"}},{"id":"YWltcHJvan5iLjAzZjk4YjEzLWVjOTUtNDYxYi1iOTQ1LTc2NWY0OTYxNjVjMX5iLjg3OGIzMTkx ...etc
+```
+
+```
+query GetProjects($hubId: ID!) { projects(hubId: $hubId, pagination:{cursor:"dXJuOmFkc2sud29ya3NwYWNlOnByb2QucHJvamVjdDo1NjZkOWNiNi0yOTA3LTRhOWQtYWU4OC0zYmI3Y2YyZjE4Yjd-Mw"}) { pagination { cursor } results { id name alternativeIdentifiers{ dataManagementAPIProjectId } } } }
+```
+
+```
+{"hubId":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e"}
+```
+
+```
+{"data":{"projects":{"pagination":{"cursor":"dXJuOmFkc2sud29ya3NwYWNlOnByb2QucHJvamVjdDo2NDllNzQ2My0wZTc1LTRjMDMtOWM5Zi0zNDUwNzMzMzc4ZWN-Mw"},"results":[{"id":"urn:adsk.workspace:prod.project:566d9cb6-2907-4a9d-ae88-3bb7cf2f18b7","name":"Construction : Sample Project - Seaport Civic Center","alternativeIdentifiers":{"dataManagementAPIProjectId":"b.9177ea8c-efb4-4612-8ef1-6e4ce114658c"}},{"id":"urn ...etc
+```
+
+```
+query GetProjects($hubId: ID!) { projects(hubId: $hubId, pagination:{limit:3}) { pagination { cursor } results { id name alternativeIdentifiers{ externalProjectId } } } }
+```
+
+```
+{"hubId":"b.03f98b13-ec95-461b-b945-765f496165c1"}
+```
+
+```
+{"data":{"projects":{"pagination":{"cursor":"Y3Vyc34xfjM"},"results":[{"id":"YWltcHJvan5iLjAzZjk4YjEzLWVjOTUtNDYxYi1iOTQ1LTc2NWY0OTYxNjVjMX5iLjI1MTg2MzE1LWIyNWMtNDkxMC05MzkxLTllMGE4ZjhmNzA5Zg","name":"JM AEC Data Model Samples","alternativeIdentifiers":{"externalProjectId":"b.25186315-b25c-4910-9391-9e0a8f8f709f"}},{"id":"YWltcHJvan5iLjAzZjk4YjEzLWVjOTUtNDYxYi1iOTQ1LTc2NWY0OTYxNjVjMX5iLjg3OGIzMTkx ...etc
+```
+
+```
+query GetProjects($hubId: ID!) { projects(hubId: $hubId, pagination:{cursor:"dXJuOmFkc2sud29ya3NwYWNlOnByb2QucHJvamVjdDo1NjZkOWNiNi0yOTA3LTRhOWQtYWU4OC0zYmI3Y2YyZjE4Yjd-Mw"}) { pagination { cursor } results { id name alternativeIdentifiers{ dataManagementAPIProjectId } } } }
+```
+
+```
+{"hubId":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e"}
+```
+
+```
+{"data":{"projects":{"pagination":{"cursor":"dXJuOmFkc2sud29ya3NwYWNlOnByb2QucHJvamVjdDo2NDllNzQ2My0wZTc1LTRjMDMtOWM5Zi0zNDUwNzMzMzc4ZWN-Mw"},"results":[{"id":"urn:adsk.workspace:prod.project:566d9cb6-2907-4a9d-ae88-3bb7cf2f18b7","name":"Construction : Sample Project - Seaport Civic Center","alternativeIdentifiers":{"dataManagementAPIProjectId":"b.9177ea8c-efb4-4612-8ef1-6e4ce114658c"}},{"id":"urn ...etc
+```
+
+
+---
+
+## aec-ratelimit.md
+
+# AEC Data Model Rate Limits
+
+## Rate limits
+
+## How to calculate the point value of a query?
+
+## Exceeding the rate limit
+
+## Exceeding the maximum allowed query point
+
+## Knowing the point value of a query
+
+> In order to maintain stability and ensure accessibility of our API to all users, weâve implemented certain protection measures on incoming requests to our GraphQL API via rate limits.
+
+## Code Examples
+
+```
+{"errors":[{"message":"Query point value per minute quota exceeded with point value 231 and remaining quota 69. Please try again later.","extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}
+```
+
+```
+{"errors":[{"message":"Query point value 1231 exceeds maximum allowed query point value 1000. To reduce point value, consider setting a lower pagination limit or reducing the number of fields requested.","extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}
+```
+
+```
+{ { "data": { ... }, "extensions": { "pointValue": { "requestedQueryPointValue": 16 } } } }
+```
+
+```
+{"errors":[{"message":"Query point value per minute quota exceeded with point value 231 and remaining quota 69. Please try again later.","extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}
+```
+
+```
+{"errors":[{"message":"Query point value 1231 exceeds maximum allowed query point value 1000. To reduce point value, consider setting a lower pagination limit or reducing the number of fields requested.","extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}
+```
+
+```
+{ { "data": { ... }, "extensions": { "pointValue": { "requestedQueryPointValue": 16 } } } }
+```
+
+
+---
+
+## about_aecima_data_explorer.md
+
+# About the AEC Data Model Explorer
+
+## Using AEC Data Model Explorer
+
+## User interaction elements
+
+### Explorer panes
+
+### Interactive elements
+
+## Sending queries
+
+## Handling token expiration
+
+> The AEC Data Model Explorer is an interactive browser-based user interface. It is designed for exploring and executing GraphQL queries against the AEC Data Model API. It includes an autocomplete feature, which automatically suggests potential fields as you type a query. The Autodesk AEC Data Model Beta connects to a test ACC Hub with sample Revit Models. A new Viewer option is now available in the latest GraphiQL explorer. This option allows you to preview the model based on the model ID also known as design URN.
+
+
+---
+
+## knownlimitations.md
+
+# Known Limitations
+
+> There are some known limitations with the AEC Data Model API in the current release.
+
+
+---
+
+## faq.md
+
+# Frequently Asked Questions
+
+## Why canât I retrieve data from my models using the AEC Data Model APIs?
+
+## Why is filtering elements on some properties not working?
+
+## How to maintain refresh tokens ?
+
+## How to query data from ElementGroups hosted in regions other than the US?
+
+> It is possible that your models were not successfully extracted to the AEC Data Model due to the following reasons:
+
+
+---
+
+## before_you_begin.md
+
+# Before You Begin
+
+## Step 1: Prerequisites
+
+## Step 2: Register an App
+
+## Step 3: Setting up the environment
+
+## Step 4: Accessing Data via the AEC Data Model Explorer
+
+## Step 5: Sign in to AEC Data Model Explorer
+
+## Step 6: Next steps
+
+> If you are using this API for the first time, we recommend that you configure your environment. For more learning resources, you can see Tutorials.
+
+
+---
+
+## gethubs.md
+
+# Get Hubs
+
+## Step 1: Request a list of Hubs
+
+> In this guide, you will learn how to retrieve a list of all the hubs you have access to.
+
+## Code Examples
+
+```
+query GetHubs { hubs { pagination { cursor } results { name id } } }
+```
+
+```
+{"data":{"hubs":{"pagination":{"cursor":null},"results":[{"name":"AEC DM Developer Advocacy Support","id":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e"},{"name":"Developer Advocacy Support","id":"urn:adsk.ace:prod.scope:c0c44a35-fc67-4a8d-8967-f2d975bc03ec"}]}}}
+```
+
+```
+query GetHubs { hubs { pagination { cursor } results { name id } } }
+```
+
+```
+{"data":{"hubs":{"pagination":{"cursor":null},"results":[{"name":"AEC DM Developer Advocacy Support","id":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e"},{"name":"Developer Advocacy Support","id":"urn:adsk.ace:prod.scope:c0c44a35-fc67-4a8d-8967-f2d975bc03ec"}]}}}
+```
+
+
+---
+
+## getprojects.md
+
+# Get Projects
+
+## Step 1: Request for a list of Projects within a Hub
+
+> In this guide, you will learn how to retrieve a list of all projects available within the hubs you have access to.
+
+## Code Examples
+
+```
+query GetProjects($hubId: ID!) { projects(hubId: $hubId) { pagination { cursor } results { id name alternativeIdentifiers{ dataManagementAPIProjectId } } } }
+```
+
+```
+{"hubId":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e"}
+```
+
+```
+{"data":{"projects":{"pagination":{"cursor":null},"results":[{"id":"urn:adsk.workspace:prod.project:39208068-e548-4d9e-b8a7-e000fdf2a9b4","name":"AEC DM Bootcamp Project","alternativeIdentifiers":{"dataManagementAPIProjectId":"b.ddcecd34-68b7-41af-ad65-2ce571186c6c"}}]}}}
+```
+
+```
+query GetProjects($hubId: ID!) { projects(hubId: $hubId) { pagination { cursor } results { id name alternativeIdentifiers{ dataManagementAPIProjectId } } } }
+```
+
+```
+{"hubId":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e"}
+```
+
+```
+{"data":{"projects":{"pagination":{"cursor":null},"results":[{"id":"urn:adsk.workspace:prod.project:39208068-e548-4d9e-b8a7-e000fdf2a9b4","name":"AEC DM Bootcamp Project","alternativeIdentifiers":{"dataManagementAPIProjectId":"b.ddcecd34-68b7-41af-ad65-2ce571186c6c"}}]}}}
+```
+
+
+---
+
+## nav-elements.md
+
+# Navigate to ElementGroups within a Project
+
+## Step 1: Request for a list of ElementGroups within a Project
+
+## Step 2: To preview the model
+
+> In this guide, you will learn how to retrieve a list of ElementGroups within a specific project. ElementGroups are collections of elements that can be used to organize and manage data in Autodesk AEC applications.
+
+## Code Examples
+
+```
+query GetElementGroupsByProject($projectId: ID!) { elementGroupsByProject(projectId: $projectId) { pagination { cursor } results{ name id alternativeIdentifiers{ fileUrn fileVersionUrn } } } }
+```
+
+```
+{"projectId":"urn:adsk.workspace:prod.project:39208068-e548-4d9e-b8a7-e000fdf2a9b4"}
+```
+
+```
+{"data":{"elementGroupsByProject":{"pagination":{"cursor":null},"results":[{"name":"Snowdon Towers Sample HVAC.rvt","id":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35uUVpyS1BEUVJVS0VFOWtmWWNHV0VB","alternativeIdentifiers":{"fileUrn":"urn:adsk.wipprod:dm.lineage:nQZrKPDQRUKEE9kfYcGWEA","fileVersionUrn":"urn:adsk.wipprod:fs.file:vf.nQZrKPDQRUKEE9kfYcGWEA?version=1"}},{"name":"Snowdon Towers Sample El ...etc
+```
+
+```
+query GetElementGroupsByProject($projectId: ID!) { elementGroupsByProject(projectId: $projectId) { pagination { cursor } results{ name id alternativeIdentifiers{ fileUrn fileVersionUrn } } } }
+```
+
+```
+{"projectId":"urn:adsk.workspace:prod.project:39208068-e548-4d9e-b8a7-e000fdf2a9b4"}
+```
+
+```
+{"data":{"elementGroupsByProject":{"pagination":{"cursor":null},"results":[{"name":"Snowdon Towers Sample HVAC.rvt","id":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35uUVpyS1BEUVJVS0VFOWtmWWNHV0VB","alternativeIdentifiers":{"fileUrn":"urn:adsk.wipprod:dm.lineage:nQZrKPDQRUKEE9kfYcGWEA","fileVersionUrn":"urn:adsk.wipprod:fs.file:vf.nQZrKPDQRUKEE9kfYcGWEA?version=1"}},{"name":"Snowdon Towers Sample El ...etc
+```
+
+
+---
+
+## elementsbycategory.md
+
+# Get Elements from a Category
+
+## Step 1: Request Elements matching the specified classification filter
+
+> In this guide, you will learn how to retrieve elements from a specific category within an ElementGroup. This is useful for filtering elements based on their classification, such as walls, doors, or windows.
+
+## Code Examples
+
+```
+query GetElementsFromCategory($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup(elementGroupId: $elementGroupId, filter: {query:$propertyFilter}) { pagination { cursor } results { id name properties { results { name value definition { units{ name } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","propertyFilter":"property.name.category==Walls"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"pagination":{"cursor":"Y3Vyc341MH41MA"},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzEwMGMzNw","name":"Generic - 21\"","properties":{"results":[{"name":"Description","value":null,"definition":{"units":null}},{"name":"Manufacturer","value":null,"definition":{"units":null}},{"name":"Model","value":null,"definition":{" ...etc
+```
+
+```
+query GetElementsFromCategory($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup(elementGroupId: $elementGroupId, filter: {query:$propertyFilter}) { pagination { cursor } results { id name properties { results { name value definition { units{ name } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","propertyFilter":"property.name.category==Walls"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"pagination":{"cursor":"Y3Vyc341MH41MA"},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzEwMGMzNw","name":"Generic - 21\"","properties":{"results":[{"name":"Description","value":null,"definition":{"units":null}},{"name":"Manufacturer","value":null,"definition":{"units":null}},{"name":"Model","value":null,"definition":{" ...etc
+```
+
+
+---
+
+## task1a.md
+
+# Get ElementGroups Based on Metadata
+
+## Step 1: Request ElementGroups by Hub
+
+> In this guide, you will learn how to query hubs based on metadata using RSQL (a query language designed for filtering and querying data) and receive responses from the AEC Data Model server.
+
+## Code Examples
+
+```
+query elementGroupsByHub($hubId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { pagination { cursor } results { id name alternativeIdentifiers { fileUrn fileVersionUrn } } } }
+```
+
+```
+{"hubId":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e","filter":{"query":"metadata.createdOn&gt;2024-05-01T06:37:13.472Z"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementGroupsByHub":{"pagination":{"cursor":"Y3Vyc341fjU"},"results":[{"id":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35uUVpyS1BEUVJVS0VFOWtmWWNHV0VB","name":"Snowdon Towers Sample HVAC.rvt","alternativeIdentifiers":{"fileUrn":"urn:adsk.wipprod:dm.lineage:nQZrKPDQRUKEE9kfYcGWEA","fileVersionUrn":"urn:adsk.wipprod:fs.file:vf.nQZrKPDQRUKEE9kfYcGWEA?version=1"}},{"id":"YWVjZH42SUpGQXdONExWT ...etc
+```
+
+```
+query elementGroupsByHub($hubId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { pagination { cursor } results { id name alternativeIdentifiers { fileUrn fileVersionUrn } } } }
+```
+
+```
+{"hubId":"urn:adsk.ace:prod.scope:dccde3e3-c20c-40d3-a27c-7ac53b051b6e","filter":{"query":"metadata.createdOn&gt;2024-05-01T06:37:13.472Z"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementGroupsByHub":{"pagination":{"cursor":"Y3Vyc341fjU"},"results":[{"id":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35uUVpyS1BEUVJVS0VFOWtmWWNHV0VB","name":"Snowdon Towers Sample HVAC.rvt","alternativeIdentifiers":{"fileUrn":"urn:adsk.wipprod:dm.lineage:nQZrKPDQRUKEE9kfYcGWEA","fileVersionUrn":"urn:adsk.wipprod:fs.file:vf.nQZrKPDQRUKEE9kfYcGWEA?version=1"}},{"id":"YWVjZH42SUpGQXdONExWT ...etc
+```
+
+
+---
+
+## task2a.md
+
+# Get Versions of an ElementGroup
+
+## Step 1: Request for a particular ElementGroup
+
+> In this guide, you will learn how to query the versions of a specific elementGroup using the AEC Data Model Explorer. You will retrieve the version history of an elementGroup, including the version number and creation date.
+
+## Code Examples
+
+```
+query ($elementGroupId: ID!) { elementGroupAtTip(elementGroupId: $elementGroupId) { id name alternativeIdentifiers { fileUrn fileVersionUrn } versionHistory { versions { results { versionNumber createdOn } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB"}
+```
+
+```
+{"data":{"elementGroupAtTip":{"id":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","name":"Snowdon Towers Sample Architectural.rvt","alternativeIdentifiers":{"fileUrn":"urn:adsk.wipprod:dm.lineage:rEdJOCOqR0ekyJBBYlR9EA","fileVersionUrn":"urn:adsk.wipprod:fs.file:vf.rEdJOCOqR0ekyJBBYlR9EA?version=1"},"versionHistory":{"versions":{"results":[{"versionNumber":1,"createdOn" ...etc
+```
+
+```
+query ($elementGroupId: ID!) { elementGroupAtTip(elementGroupId: $elementGroupId) { id name alternativeIdentifiers { fileUrn fileVersionUrn } versionHistory { versions { results { versionNumber createdOn } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB"}
+```
+
+```
+{"data":{"elementGroupAtTip":{"id":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","name":"Snowdon Towers Sample Architectural.rvt","alternativeIdentifiers":{"fileUrn":"urn:adsk.wipprod:dm.lineage:rEdJOCOqR0ekyJBBYlR9EA","fileVersionUrn":"urn:adsk.wipprod:fs.file:vf.rEdJOCOqR0ekyJBBYlR9EA?version=1"},"versionHistory":{"versions":{"results":[{"versionNumber":1,"createdOn" ...etc
+```
+
+
+---
+
+## task3a.md
+
+# Get Element Instances of a Particular Type
+
+## Step 1: Request for a list of elements in an ElementGroup
+
+> In this guide, you will learn how to retrieve all instances of a particular type from a Design at Tip. Additionally, you can request select properties like Area, Volume, etc. of these instances and their type to be returned.
+Let us try to retrieve all basic wall instances of the type Foundation - 24\" Concrete from the Snowdon Towers Sample Architecture.rvt.
+
+## Code Examples
+
+```
+query ($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup( elementGroupId: $elementGroupId filter: { query: $propertyFilter } pagination: {limit: 5} ) { pagination { cursor } results { id name properties { results { name value } } referencedBy(name: "Type") { pagination { cursor } results { id name alternativeIdentifiers { externalElementId } properties { results { name value } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","propertyFilter":"'property.name.category'=contains=Walls and 'property.name.Element Context'==Type and 'property.name.Element Name'=contains='Foundation - 24'"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"pagination":{"cursor":null},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzEyYTFiNQ","name":"Foundation - 24\" Concrete","properties":{"results":[{"name":"Description","value":null},{"name":"Manufacturer","value":null},{"name":"Model","value":null},{"name":"Type Comments","value":null},{"name":"URL","value":null},{"na ...etc
+```
+
+```
+query ($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup( elementGroupId: $elementGroupId filter: { query: $propertyFilter } pagination: {limit: 5} ) { pagination { cursor } results { id name properties { results { name value } } referencedBy(name: "Type") { pagination { cursor } results { id name alternativeIdentifiers { externalElementId } properties { results { name value } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","propertyFilter":"'property.name.category'=contains=Walls and 'property.name.Element Context'==Type and 'property.name.Element Name'=contains='Foundation - 24'"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"pagination":{"cursor":null},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzEyYTFiNQ","name":"Foundation - 24\" Concrete","properties":{"results":[{"name":"Description","value":null},{"name":"Manufacturer","value":null},{"name":"Model","value":null},{"name":"Type Comments","value":null},{"name":"URL","value":null},{"na ...etc
+```
+
+
+---
+
+## task4a.md
+
+# Get Element Instances in a Category by Version
+
+## Step 1: Request elements matching the specified classification filter
+
+> In this guide, you will learn how to retrieve all instances of a particular category from an elementGroup at a specific version. Also, you can request only those instances that match your filter criteria.
+
+## Code Examples
+
+```
+query GetWallsElementsByElementGroupIdAtVersion($elementGroupId: ID!, $versionNumber: Int!, $propertyFilter: String!) { elementsByElementGroupAtVersion(elementGroupId: $elementGroupId, versionNumber: $versionNumber, filter: { query: $propertyFilter}, pagination : { limit : 5 }) { pagination { cursor } results { id name properties { results { name value displayValue } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","versionNumber":1,"propertyFilter":"property.name.category==Walls and 'property.name.Element Context'==Instance"}
+```
+
+```
+{"data":{"elementsByElementGroupAtVersion":{"pagination":{"cursor":"Y3Vyc341fjU"},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzEwMTc5NQ","name":"_Not Defined","properties":{"results":[{"name":"Comments","value":null,"displayValue":null},{"name":"Angle","value":0,"displayValue":"0"},{"name":"Angle","value":0,"displayValue":"0"},{"name":"Offset","value" ...etc
+```
+
+```
+query GetWallsElementsByElementGroupIdAtVersion($elementGroupId: ID!, $versionNumber: Int!, $propertyFilter: String!) { elementsByElementGroupAtVersion(elementGroupId: $elementGroupId, versionNumber: $versionNumber, filter: { query: $propertyFilter}, pagination : { limit : 5 }) { pagination { cursor } results { id name properties { results { name value displayValue } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","versionNumber":1,"propertyFilter":"property.name.category==Walls and 'property.name.Element Context'==Instance"}
+```
+
+```
+{"data":{"elementsByElementGroupAtVersion":{"pagination":{"cursor":"Y3Vyc341fjU"},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzEwMTc5NQ","name":"_Not Defined","properties":{"results":[{"name":"Comments","value":null,"displayValue":null},{"name":"Angle","value":0,"displayValue":"0"},{"name":"Angle","value":0,"displayValue":"0"},{"name":"Offset","value" ...etc
+```
+
+
+---
+
+## task5a.md
+
+# Get Project Elements with Specific Properties
+
+## Step 1: Request Elements Matching the Specified Classification Filter
+
+> In this guide, you will learn how to retrieve elements in a project based on specific properties using the AEC Data Model Explorer. You will retrieve elements that match certain criteria, such as walls with a length rating greater than 10.
+
+## Code Examples
+
+```
+query GetElementsInProject($projectId: ID!, $propertyFilter: String!) { elementsByProject(projectId: $projectId, filter: {query: $propertyFilter}) { pagination { cursor } results { id name properties( includeReferencesProperties: "Type" filter: {names: ["Family Name", "Element Name", "Element Context", "Fire Rating"]} ) { results { name value displayValue definition { units{ name } } } } } } }
+```
+
+```
+{"projectId":"urn:adsk.workspace:prod.project:39208068-e548-4d9e-b8a7-e000fdf2a9b4","propertyFilter":"'property.name.Family Name'=='Basic Wall' and property.name.Length &gt; 10 and 'property.name.Element Context'==Instance"}
+```
+
+```
+{"data":{"elementsByProject":{"pagination":{"cursor":"YWRjdXJzfjB-NTB-NTA"},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ340VFVtRnF0WFJVVy1CS09Gb1cyd3FRXzE4NTI4MQ","name":"Generic - 200mm","properties":{"results":[{"name":"Element Name","value":"Generic - 200mm","displayValue":"Generic - 200mm","definition":{"units":null}},{"name":"Family Name","value":"Basic Wall","displayValue":"Ba ...etc
+```
+
+```
+query GetElementsInProject($projectId: ID!, $propertyFilter: String!) { elementsByProject(projectId: $projectId, filter: {query: $propertyFilter}) { pagination { cursor } results { id name properties( includeReferencesProperties: "Type" filter: {names: ["Family Name", "Element Name", "Element Context", "Fire Rating"]} ) { results { name value displayValue definition { units{ name } } } } } } }
+```
+
+```
+{"projectId":"urn:adsk.workspace:prod.project:39208068-e548-4d9e-b8a7-e000fdf2a9b4","propertyFilter":"'property.name.Family Name'=='Basic Wall' and property.name.Length &gt; 10 and 'property.name.Element Context'==Instance"}
+```
+
+```
+{"data":{"elementsByProject":{"pagination":{"cursor":"YWRjdXJzfjB-NTB-NTA"},"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ340VFVtRnF0WFJVVy1CS09Gb1cyd3FRXzE4NTI4MQ","name":"Generic - 200mm","properties":{"results":[{"name":"Element Name","value":"Generic - 200mm","displayValue":"Generic - 200mm","definition":{"units":null}},{"name":"Family Name","value":"Basic Wall","displayValue":"Ba ...etc
+```
+
+
+---
+
+## task6a.md
+
+# Get Elements by using Instances or Reference
+
+## Step 1: List all Elements Having Concrete Material in a ElementGroup
+
+## Step 2: List Element Instances Having Concrete Material
+
+## Step 3: List Elements having Concrete material by using Reference type
+
+> In this guide, you will learn how to retrieve all elements from all elementGroups within a project. You will also learn how to filter elements based on their materials, by element instances, or by using reference types to fetch specific results that match your criteria.
+
+## Code Examples
+
+```
+query GetConcreteMaterials($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup( elementGroupId: $elementGroupId filter: {query: $propertyFilter} pagination: {limit: 20} ) { results { id name } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","propertyFilter":"property.name.category==Materials and 'property.name.Element Name'=contains='Concrete'"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzE1Nzc0Mw","name":"Concrete, Precast Smooth, Light Grey"},{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzFmYjFhNA","name":"Concrete, Polished"},{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzQ5ZmI","name":" ...etc
+```
+
+```
+query GetInstancesOfConcreteMaterial($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup(elementGroupId: $elementGroupId, filter: { query: $propertyFilter}, pagination : { limit : 20 }) { results { id name properties { results { name value } } references{ results{ name displayValue value{ properties{ results{ name value displayValue } } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3","propertyFilter":"('reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJkNjE3 or 'reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJlZA) and 'property.name.Element Context'==Instance"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzkzZjc1","name":"CC24x24","properties":{"results":[{"name":"Comments","value":null},{"name":"Has Association","value":false},{"name":"Column Location Mark","value":"D-3"},{"name":"Mark","value":null},{"name":"External ID","value":"e37453ab-55ac-464e-96ef-b2d748a679fc-00093f ...etc
+```
+
+```
+query GetInstancesOfConcreteMaterial($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup( elementGroupId: $elementGroupId filter: {query: $propertyFilter} pagination: {limit: 20} ) { results { id name referencedBy(name: "Type") { results { id name properties { results { name value } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3","propertyFilter":"('reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJkNjE3 or 'reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJlZA) and 'property.name.Element Context'==Type"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzExMTY","name":"Concrete 10","referencedBy":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3X2EzOTY3","name":"Concrete 10","properties":{"results":[{"name":"Comments","value":null},{"name":"Has Association","value":false},{"name":" ...etc
+```
+
+```
+query GetConcreteMaterials($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup( elementGroupId: $elementGroupId filter: {query: $propertyFilter} pagination: {limit: 20} ) { results { id name } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVB","propertyFilter":"property.name.category==Materials and 'property.name.Element Name'=contains='Concrete'"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzE1Nzc0Mw","name":"Concrete, Precast Smooth, Light Grey"},{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzFmYjFhNA","name":"Concrete, Polished"},{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ35yRWRKT0NPcVIwZWt5SkJCWWxSOUVBXzQ5ZmI","name":" ...etc
+```
+
+```
+query GetInstancesOfConcreteMaterial($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup(elementGroupId: $elementGroupId, filter: { query: $propertyFilter}, pagination : { limit : 20 }) { results { id name properties { results { name value } } references{ results{ name displayValue value{ properties{ results{ name value displayValue } } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3","propertyFilter":"('reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJkNjE3 or 'reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJlZA) and 'property.name.Element Context'==Instance"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzkzZjc1","name":"CC24x24","properties":{"results":[{"name":"Comments","value":null},{"name":"Has Association","value":false},{"name":"Column Location Mark","value":"D-3"},{"name":"Mark","value":null},{"name":"External ID","value":"e37453ab-55ac-464e-96ef-b2d748a679fc-00093f ...etc
+```
+
+```
+query GetInstancesOfConcreteMaterial($elementGroupId: ID!, $propertyFilter: String!) { elementsByElementGroup( elementGroupId: $elementGroupId filter: {query: $propertyFilter} pagination: {limit: 20} ) { results { id name referencedBy(name: "Type") { results { id name properties { results { name value } } } } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3","propertyFilter":"('reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJkNjE3 or 'reference.Structural Material'==YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzJlZA) and 'property.name.Element Context'==Type"}
+```
+
+```
+{"data":{"elementsByElementGroup":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3XzExMTY","name":"Concrete 10","referencedBy":{"results":[{"id":"YWVjZX42SUpGQXdONExWTG5JZXZiQk5GNU1IX0wyQ350OU0xX0J3VVRObVllbXRoUVBYNHh3X2EzOTY3","name":"Concrete 10","properties":{"results":[{"name":"Comments","value":null},{"name":"Has Association","value":false},{"name":" ...etc
+```
+
+
+---
+
+## distinctvaluesquery.md
+
+# Get Distinct Values of Properties
+
+## Step 1: Retrieve distinct values by ID
+
+## Retrieve distinct values by Name
+
+### Vairable examples: Filtering by Categories and Materials
+
+> This page describes how to use the following queries to retrieve distinct values of properties in the AEC Data Model API. These queries enable you to find and retrieve all distinct values of a given property within an element group, either by property definition ID or property name.
+
+## Code Examples
+
+```
+query ($elementGroupId: ID!, $propertyDefinitionId: ID!, $filter: ElementFilterInput) { distinctPropertyValuesInElementGroupById(elementGroupId: $elementGroupId, propertyDefinitionId: $propertyDefinitionId, filter: $filter) { values(limit: 200) { value, count } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","propertyDefinitionId":"autodesk.revit.parameter:parameter.category-2.0.0"}
+```
+
+```
+"values": [ { "value": "Curtain Wall Mullions", "count": 2372 }, { "value": "Analytical Nodes", "count": 1410 } ]
+```
+
+```
+query ($elementGroupId: ID!, $name: String!, $filter: ElementFilterInput, $pagination: PaginationInput) { distinctPropertyValuesInElementGroupByName(elementGroupId: $elementGroupId, name: $name, filter: $filter, pagination: $pagination) { pagination { cursor } results { definition { id } values(limit: 200) { value count } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Length"}
+```
+
+```
+"results": [ { "definition": { "id": "autodesk.revit.parameter:structuralFoundationLength-2.0.0", }, "values": [ { "value": "1.93546015625", "count": 5 }, { "value": "1.0947796875000002", "count": 1 } ] }, { "definition": { "id": "autodesk.revit.parameter:continuousrailEndExtensionLengthParam-2.0.0", }, "values": [ { "value": "3.0463569792873577", "count": 1 } ] } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Family Name","filter":{"query":"property.name.category==Doors"}}
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Type","filter":{"query":"'property.name.Family Name'=='Single'"}}
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Structural Material","filter":{"query":"property.name.category==Walls"}}
+```
+
+```
+{ "elementGroupId": "YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR", "name": "Width", "filter": { "query" : "property.name.category==Doors", "properties" { "name": "Width", "valueWithComparator": { "value": "0.9", "comparator": "LESS_THAN" } } } }
+```
+
+```
+query ($elementGroupId: ID!, $propertyDefinitionId: ID!, $filter: ElementFilterInput) { distinctPropertyValuesInElementGroupById(elementGroupId: $elementGroupId, propertyDefinitionId: $propertyDefinitionId, filter: $filter) { values(limit: 200) { value, count } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","propertyDefinitionId":"autodesk.revit.parameter:parameter.category-2.0.0"}
+```
+
+```
+"values": [ { "value": "Curtain Wall Mullions", "count": 2372 }, { "value": "Analytical Nodes", "count": 1410 } ]
+```
+
+```
+query ($elementGroupId: ID!, $name: String!, $filter: ElementFilterInput, $pagination: PaginationInput) { distinctPropertyValuesInElementGroupByName(elementGroupId: $elementGroupId, name: $name, filter: $filter, pagination: $pagination) { pagination { cursor } results { definition { id } values(limit: 200) { value count } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Length"}
+```
+
+```
+"results": [ { "definition": { "id": "autodesk.revit.parameter:structuralFoundationLength-2.0.0", }, "values": [ { "value": "1.93546015625", "count": 5 }, { "value": "1.0947796875000002", "count": 1 } ] }, { "definition": { "id": "autodesk.revit.parameter:continuousrailEndExtensionLengthParam-2.0.0", }, "values": [ { "value": "3.0463569792873577", "count": 1 } ] } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Family Name","filter":{"query":"property.name.category==Doors"}}
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Type","filter":{"query":"'property.name.Family Name'=='Single'"}}
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Structural Material","filter":{"query":"property.name.category==Walls"}}
+```
+
+```
+{ "elementGroupId": "YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR", "name": "Width", "filter": { "query" : "property.name.category==Doors", "properties" { "name": "Width", "valueWithComparator": { "value": "0.9", "comparator": "LESS_THAN" } } } }
+```
+
+
+---
+
+## ElementGroupValidation.md
+
+# Elementgroup Validation Sample Workflow
+
+## Before You Begin
+
+## Setting up the Application
+
+## Running the Sample
+
+## Workflow Description
+
+> Validating data property names, units, and types used across elementgroups in a project is a valuable QA/QC process.
+This sample automates this task using the AEC Data Model APIs.
+
+## Code Examples
+
+```
+git clone https://github.com/autodesk-platform-services/aps-aecdatamodel-samples.git
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+dotnet run
+```
+
+```
+elementGroupsByProject(projectId: $projectId) { pagination{ pageSize cursor } results{ name id propertyDefinitions{ results{ id name description specification } } } }
+```
+
+```
+elementGroupsByProject(projectId: $projectId, pagination:{cursor:"cursor string here"}) { pagination{ pageSize cursor } results{ name id propertyDefinitions{ results{ id name description specification } } } }
+```
+
+```
+{ projectId = "Your project ID" }
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+elementGroupsByProject(projectId: $projectId) { pagination{ pageSize cursor } results{ name id propertyDefinitions{ results{ id name description specification } } } }
+```
+
+```
+elementGroupsByProject(projectId: $projectId, pagination:{cursor:"cursor string here"}) { pagination{ pageSize cursor } results{ name id propertyDefinitions{ results{ id name description specification } } } }
+```
+
+```
+{ projectId = "Your project ID" }
+```
+
+
+---
+
+## quantitytakeoff.md
+
+# Quantity Takeoff Sample Workflow
+
+## Before You Begin
+
+## Setting up the Application
+
+## Running the Sample
+
+## Workflow Description
+
+> This sample allows you to build a quantity takeoff for âDoorsâ. You will fetch all elements filtered by classification âDoorsâ.
+
+## Code Examples
+
+```
+git clone https://github.com/autodesk-platform-services/aps-aecdatamodel-samples.git
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+dotnet run
+```
+
+```
+query getQuantityTakeoff ($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}) { pagination{ pageSize cursor } results{ id name } } }
+```
+
+```
+query getQuantityTakeoff ($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}, pagination:{cursor:"cursor"}) { pagination{ pageSize cursor } results{ id name } } }
+```
+
+```
+{ elementGroupId = elementGroupId, elementsfilter = elementsfilter }
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+query getQuantityTakeoff ($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}) { pagination{ pageSize cursor } results{ id name } } }
+```
+
+```
+query getQuantityTakeoff ($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}, pagination:{cursor:"cursor"}) { pagination{ pageSize cursor } results{ id name } } }
+```
+
+```
+{ elementGroupId = elementGroupId, elementsfilter = elementsfilter }
+```
+
+
+---
+
+## schedule.md
+
+# Window Schedule Sample Workflow
+
+## Before You Begin
+
+## Setting up the Application
+
+## Running the Sample
+
+## Workflow Description
+
+> A schedule is typically used to identify, in most cases a chart or table providing descriptions of the windows , doors, finishes, lintels, footings, piers, etc. on a construction project. Letâs take the same sample model and imagine that you would like to build a window schedule. You will need to retrieve properties like panel glazing, glass, frame material, height, width, etc. of all Elementgroups entity instances of category windows.
+
+## Code Examples
+
+```
+git clone https://github.com/autodesk-platform-services/aps-aecdatamodel-samples.git
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+dotnet run
+```
+
+```
+query GetSchedule($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId,filter: { query: $elementsfilter}){ pagination{ pageSize cursor } results{ id name properties{ results{ name value displayValue propertyDefinition{ units } } } references{ results{ name value{ properties{ results{ name value displayValue definition{ units{ name } } } } } } } } } }
+```
+
+```
+query GetSchedule($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId,filter: { query: $elementsfilter}, pagination:{cursor:"cursor"}){ pagination{ pageSize cursor } results{ id name properties{ results{ name value displayValue definition{ units{ name } } } } references{ results{ name value{ properties{ results{ name value displayValue definition{ units{ name } } } } } } } } } }
+```
+
+```
+{ elementGroupId = elementGroupId, elementsfilter = elementsfilter }
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+query GetSchedule($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId,filter: { query: $elementsfilter}){ pagination{ pageSize cursor } results{ id name properties{ results{ name value displayValue propertyDefinition{ units } } } references{ results{ name value{ properties{ results{ name value displayValue definition{ units{ name } } } } } } } } } }
+```
+
+```
+query GetSchedule($elementGroupId: ID!, $elementsfilter: String!){ elementsByElementGroup(elementGroupId: $elementGroupId,filter: { query: $elementsfilter}, pagination:{cursor:"cursor"}){ pagination{ pageSize cursor } results{ id name properties{ results{ name value displayValue definition{ units{ name } } } } references{ results{ name value{ properties{ results{ name value displayValue definition{ units{ name } } } } } } } } } }
+```
+
+```
+{ elementGroupId = elementGroupId, elementsfilter = elementsfilter }
+```
+
+
+---
+
+## ProcurementDashboard.md
+
+# Furniture Procurement Dashboard Sample Workflow
+
+## Before You Begin
+
+## Setting up the Application
+
+## Running the Sample
+
+## Workflow Description
+
+> Obtaining furniture procurement data can help building managers make more informed decisions about budgeting, maintenance, compliance, and planning, which can ultimately lead to a more efficient and effective use of resources.
+
+## Code Examples
+
+```
+git clone https://github.com/autodesk-platform-services/aps-aecdatamodel-samples.git
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+dotnet run
+```
+
+```
+``` query GetFurnitureProcurement($elementGroupId: ID!, $elementsfilter: String!, $referencefilter: String!) { elements(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}) { pagination { pageSize cursor } results { id name properties (filter: {names: ["Element Name"]}){ results { name value } } referencedBy (name: "Level", filter: { query: $referencefilter}) { results { name properties (filter: {names: [""Family Name"", ""Element Name""]}) { results { name value } } } } } } } ```
+```
+
+```
+``` query GetFurnitureProcurement($elementGroupId: ID!, $elementsfilter: String!, $referencefilter: String!) { elements(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}, pagination:{cursor:"cursor string here"}) { pagination { pageSize cursor } results { id name properties (filter: {names: ["Element Name"]}){ results { name value } } referencedBy (name: "Level", filter: { query: $referencefilter}) { results { name properties (filter: {names: [""Family Name"", ""Element Name""]}) { results { name value } } } } } } } ```
+```
+
+```
+``` { elementGroupId = "Your elementGroup ID", elementsfilter = elementsfilter, referencefilter = referencefilter } ```
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+``` query GetFurnitureProcurement($elementGroupId: ID!, $elementsfilter: String!, $referencefilter: String!) { elements(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}) { pagination { pageSize cursor } results { id name properties (filter: {names: ["Element Name"]}){ results { name value } } referencedBy (name: "Level", filter: { query: $referencefilter}) { results { name properties (filter: {names: [""Family Name"", ""Element Name""]}) { results { name value } } } } } } } ```
+```
+
+```
+``` query GetFurnitureProcurement($elementGroupId: ID!, $elementsfilter: String!, $referencefilter: String!) { elements(elementGroupId: $elementGroupId, filter: { query: $elementsfilter}, pagination:{cursor:"cursor string here"}) { pagination { pageSize cursor } results { id name properties (filter: {names: ["Element Name"]}){ results { name value } } referencedBy (name: "Level", filter: { query: $referencefilter}) { results { name properties (filter: {names: [""Family Name"", ""Element Name""]}) { results { name value } } } } } } } ```
+```
+
+```
+``` { elementGroupId = "Your elementGroup ID", elementsfilter = elementsfilter, referencefilter = referencefilter } ```
+```
+
+
+---
+
+## CompareVersions.md
+
+# Compare Elementgroups Sample Workflow
+
+## Before You Begin
+
+## Setting up the Application
+
+## Running the Sample
+
+## Workflow Description
+
+> Comparing elementgroups can help architects and designers create more effective and functional buildings that meet the needs of their clients and occupants. By evaluating different options and approaches, they can find innovative solutions and create unique and inspiring spaces.
+
+## Code Examples
+
+```
+git clone https://github.com/autodesk-platform-services/aps-aecdatamodel-samples.git
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+dotnet run
+```
+
+```
+query getVersionProperties($elementGroupId: ID!, $versionNumber: Int!){ elementGroupByVersionNumber(elementGroupId:$elementGroupId , versionNumber:$versionNumber ){ name elements{ pagination{ pageSize cursor } results{ id name properties{ results{ name value definition{ id name units{ name } } } } } } } }
+```
+
+```
+query getVersionProperties($elementGroupId: ID!, $versionNumber: Int!){ elementGroupByVersionNumber(elementGroupId:$elementGroupId , versionNumber:$versionNumber , pagination:{cursor:"cursor"}){ name elements{ pagination{ pageSize cursor } results{ id name properties{ results{ name value definition{ id name units{ name } } } } } } } }
+```
+
+```
+{ elementGroupId = elementGroupId, elementsfilter = elementsfilter, referencefilter = referencefilter }
+```
+
+```
+Define the following environment variables: Mac OSX/Linux (Terminal) dotnet restore export APS_CLIENT_ID=&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; export APS_CLIENT_SECRET=&lt;&lt;YOUR CLIENT SECRET&gt;&gt; export APS_CALLBACK_URL=http://localhost:8080/api/auth/callback Windows dotnet restore set APS_CLIENT_ID =&lt;&lt;YOUR CLIENT ID FROM DEVELOPER PORTAL&gt;&gt; set APS_CLIENT_SECRET =&lt;&lt;YOUR CLIENT SECRET&gt;&gt; set APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
+```
+
+```
+query getVersionProperties($elementGroupId: ID!, $versionNumber: Int!){ elementGroupByVersionNumber(elementGroupId:$elementGroupId , versionNumber:$versionNumber ){ name elements{ pagination{ pageSize cursor } results{ id name properties{ results{ name value definition{ id name units{ name } } } } } } } }
+```
+
+```
+query getVersionProperties($elementGroupId: ID!, $versionNumber: Int!){ elementGroupByVersionNumber(elementGroupId:$elementGroupId , versionNumber:$versionNumber , pagination:{cursor:"cursor"}){ name elements{ pagination{ pageSize cursor } results{ id name properties{ results{ name value definition{ id name units{ name } } } } } } } }
+```
+
+```
+{ elementGroupId = elementGroupId, elementsfilter = elementsfilter, referencefilter = referencefilter }
+```
+
+
+---
+
+## graphqlendpoint.md
+
+# aec/graphql
+
+## Resource Information
+
+### Request
+
+## Headers
+
+### Request
+
+## Body Structure
+
+## Example 1
+
+### Request
+
+### Response
+
+## Example 2
+
+### Request
+
+### Response
+
+## Example 3
+
+### Request
+
+### Response
+
+> Sends GraphQL requests to AEC Data Model GraphQL service and returns responses in the JSON format.
+
+## Code Examples
+
+```
+curl -v 'https://developer.api.autodesk.com/aec/graphql' \ -X 'POST' \ -H 'Authorization: Bearer AuIPTf4KYLTYGVnOHQ0cuolwCW2a...' \ -H 'Content-Type: application/json' \ -d '{ "query":"query GetProjects($hubId: String!) { projects(hubId: $hubId) { results { id name } }", "variables":{ "hubId":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDA2" } }'
+```
+
+```
+{"data":{"projects":{"results":[{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDM5I0QyMDIyMDEzMTUwMzg3NDE5","name":"Default Project"},{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDM5I0QyMDIyMDEzMTUwMzg3NDQ0","name":"Admin Project"},{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDM5I0QyMDIyMDEzMTUwMzg3NDY5","name":"Assets"}]}}}
+```
+
+```
+axios({ method: 'POST', url: 'https://developer.api.autodesk.com/aec/graphql', data: { query: `{ hubs { results { name } } }` } })
+```
+
+```
+{"data":{"hubs":{"results":[{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2s2MTA0","name":"L2-Forge-Data-Team"},{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2s0NTA5","name":"Michelangelo\u00e2\u0080\u0099s Playground"}]}}}
+```
+
+```
+static async Task getHubs(){ var clientHandler = new HttpClientHandler(); var client = new HttpClient(clientHandler); var request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = new Uri("https://developer.api.autodesk.com/aec/graphql"), Headers = { { "Authorization", "Bearer &lt;&lt;YOUR TOKEN HERE&gt;&gt;" } }, Content = new StringContent(@"{""query"":""query GetHubs {hubs {pagination{cursor}results{name id}}}"",""variables"":{}}") { Headers = { ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json") } } }; using (var response = await client.SendAsync(request)) { response.EnsureSuccessStatusCode(); var body = await response.Content.ReadAsStringAsync(); Console.WriteLine(body); } }
+```
+
+```
+{"data":{"hubs":{"pagination":{"cursor":null},"results":[{"name":"JM Test","id":"a.YnVzaW5lc3M6YXV0b2Rlc2s1ODcy"},{"name":"AEC Data Model Account","id":"b.03f98b13-ec95-461b-b945-765f496165c1"},{"name":"Developer Advocacy Support","id":"b.489c5e7a-c6c0-4212-81f3-3529a621210b"},{"name":"Construction Records Testing","id":"b.768cae14-76b3-4531-9030-25212dab4e48"}]}}}
+```
+
+```
+curl -v 'https://developer.api.autodesk.com/aec/graphql' \ -X 'POST' \ -H 'Authorization: Bearer AuIPTf4KYLTYGVnOHQ0cuolwCW2a...' \ -H 'Content-Type: application/json' \ -d '{ "query":"query GetProjects($hubId: String!) { projects(hubId: $hubId) { results { id name } }", "variables":{ "hubId":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDA2" } }'
+```
+
+```
+{"data":{"projects":{"results":[{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDM5I0QyMDIyMDEzMTUwMzg3NDE5","name":"Default Project"},{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDM5I0QyMDIyMDEzMTUwMzg3NDQ0","name":"Admin Project"},{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2syMDM5I0QyMDIyMDEzMTUwMzg3NDY5","name":"Assets"}]}}}
+```
+
+```
+axios({ method: 'POST', url: 'https://developer.api.autodesk.com/aec/graphql', data: { query: `{ hubs { results { name } } }` } })
+```
+
+```
+{"data":{"hubs":{"results":[{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2s2MTA0","name":"L2-Forge-Data-Team"},{"id":"a.YnVzaW5lc3M6YXV0b2Rlc2s0NTA5","name":"Michelangelo\u00e2\u0080\u0099s Playground"}]}}}
+```
+
+```
+static async Task getHubs(){ var clientHandler = new HttpClientHandler(); var client = new HttpClient(clientHandler); var request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = new Uri("https://developer.api.autodesk.com/aec/graphql"), Headers = { { "Authorization", "Bearer &lt;&lt;YOUR TOKEN HERE&gt;&gt;" } }, Content = new StringContent(@"{""query"":""query GetHubs {hubs {pagination{cursor}results{name id}}}"",""variables"":{}}") { Headers = { ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json") } } }; using (var response = await client.SendAsync(request)) { response.EnsureSuccessStatusCode(); var body = await response.Content.ReadAsStringAsync(); Console.WriteLine(body); } }
+```
+
+```
+{"data":{"hubs":{"pagination":{"cursor":null},"results":[{"name":"JM Test","id":"a.YnVzaW5lc3M6YXV0b2Rlc2s1ODcy"},{"name":"AEC Data Model Account","id":"b.03f98b13-ec95-461b-b945-765f496165c1"},{"name":"Developer Advocacy Support","id":"b.489c5e7a-c6c0-4212-81f3-3529a621210b"},{"name":"Construction Records Testing","id":"b.768cae14-76b3-4531-9030-25212dab4e48"}]}}}
+```
+
+
+---
+
+## elementgroupattip.md
+
+# elementGroupAtTip
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupAtTip($elementGroupId: ID!) { elementGroupAtTip(elementGroupId: $elementGroupId) { # ElementGroupAtTip Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetElementGroupAtTip($elementGroupId: ID!) { elementGroupAtTip(elementGroupId: $elementGroupId) { # ElementGroupAtTip Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupbyversionnumber.md
+
+# elementGroupByVersionNumber
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupByVersionNumber($elementGroupId: ID!, $versionNumber: Int!) { elementGroupByVersionNumber(elementGroupId: $elementGroupId, versionNumber: $versionNumber) { # ElementGroupByVersionNumber Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","versionNumber":"&lt;SOME-INT-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetElementGroupByVersionNumber($elementGroupId: ID!, $versionNumber: Int!) { elementGroupByVersionNumber(elementGroupId: $elementGroupId, versionNumber: $versionNumber) { # ElementGroupByVersionNumber Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","versionNumber":"&lt;SOME-INT-TYPE-SCALAR-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupextractionstatus.md
+
+# elementGroupExtractionStatus
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupExtractionStatus($fileUrn: ID!, $versionNumber: Int) { elementGroupExtractionStatus(fileUrn: $fileUrn, versionNumber: $versionNumber) { # ElementGroupExtractionStatus Fields } }
+```
+
+```
+{"fileUrn":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","versionNumber":"&lt;SOME-INT-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetElementGroupExtractionStatus($fileUrn: ID!, $versionNumber: Int) { elementGroupExtractionStatus(fileUrn: $fileUrn, versionNumber: $versionNumber) { # ElementGroupExtractionStatus Fields } }
+```
+
+```
+{"fileUrn":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","versionNumber":"&lt;SOME-INT-TYPE-SCALAR-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupextractionstatusattip.md
+
+# elementGroupExtractionStatusAtTip
+
+## Arguments
+
+## Possible Returns
+
+## Code Examples
+
+```
+query GetElementGroupExtractionStatusAtTip($fileUrn: ID!, $accProjectId: ID!) { elementGroupExtractionStatusAtTip(fileUrn: $fileUrn, accProjectId: $accProjectId) { # ElementGroupExtractionStatusAtTip Fields } }
+```
+
+```
+{"fileUrn":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","accProjectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetElementGroupExtractionStatusAtTip($fileUrn: ID!, $accProjectId: ID!) { elementGroupExtractionStatusAtTip(fileUrn: $fileUrn, accProjectId: $accProjectId) { # ElementGroupExtractionStatusAtTip Fields } }
+```
+
+```
+{"fileUrn":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","accProjectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupsbyhub.md
+
+# elementGroupsByHub
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupsByHub($hubId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { # ElementGroupsByHub Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementGroupsByHub($hubId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { # ElementGroupsByHub Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupsbyproject.md
+
+# elementGroupsByProject
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupsByProject($projectId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { # ElementGroupsByProject Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementGroupsByProject($projectId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { # ElementGroupsByProject Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupsbyfolder.md
+
+# elementGroupsByFolder
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupsByFolder($projectId: ID!, $folderId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByFolder(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # ElementGroupsByFolder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementGroupsByFolder($projectId: ID!, $folderId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByFolder(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # ElementGroupsByFolder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroupsbyfolderandsubfolders.md
+
+# elementGroupsByFolderAndSubFolders
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementGroupsByFolderAndSubFolders($projectId: ID!, $folderId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByFolderAndSubFolders(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # ElementGroupsByFolderAndSubFolders Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementGroupsByFolderAndSubFolders($projectId: ID!, $folderId: ID!, $filter: ElementGroupFilterInput, $pagination: PaginationInput) { elementGroupsByFolderAndSubFolders(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # ElementGroupsByFolderAndSubFolders Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTGROUPFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## elementattip.md
+
+# elementAtTip
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetElementAtTip($elementId: ID!) { elementAtTip(elementId: $elementId) { # ElementAtTip Fields } }
+```
+
+```
+{"elementId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetElementAtTip($elementId: ID!, $propertiesPagination: PaginationInput) { elementAtTip(elementId: $elementId) { id name properties(pagination: $propertiesPagination) { results { name value } } } }
+```
+
+```
+{"elementId":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QV0hqdllJalM3NmNWbURQTXJFMXZRXzEwMDAwMA","propertiesPagination":{"limit":5}}
+```
+
+```
+{"data":{"elementAtTip":{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QV0hqdllJalM3NmNWbURQTXJFMXZRXzEwMDAwMA","name":"2.5\" x 5\" rectangular (Orange)","properties":{"pagination":{"pageSize":5,"cursor":"Y3Vyc341fjU"},"results":[{"name":"Length","value":1.2192},{"name":"Design Option","value":"Main Model"},{"name":"Area","value":0.24032209999999998},{"name":"Volume","value":0.0098322384},{"nam ...etc
+```
+
+```
+query GetElementAtTip($elementId: ID!) { elementAtTip(elementId: $elementId) { # ElementAtTip Fields } }
+```
+
+```
+{"elementId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetElementAtTip($elementId: ID!, $propertiesPagination: PaginationInput) { elementAtTip(elementId: $elementId) { id name properties(pagination: $propertiesPagination) { results { name value } } } }
+```
+
+```
+{"elementId":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QV0hqdllJalM3NmNWbURQTXJFMXZRXzEwMDAwMA","propertiesPagination":{"limit":5}}
+```
+
+```
+{"data":{"elementAtTip":{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QV0hqdllJalM3NmNWbURQTXJFMXZRXzEwMDAwMA","name":"2.5\" x 5\" rectangular (Orange)","properties":{"pagination":{"pageSize":5,"cursor":"Y3Vyc341fjU"},"results":[{"name":"Length","value":1.2192},{"name":"Design Option","value":"Main Model"},{"name":"Area","value":0.24032209999999998},{"name":"Volume","value":0.0098322384},{"nam ...etc
+```
+
+
+---
+
+## elementsbyhub.md
+
+# elementsByHub
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetElementsByHub($hubId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { # ElementsByHub Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByHub($hubId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { pagination { pageSize cursor } results { id name } } }
+```
+
+```
+{"hubId":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42","filter":{"query":"property.name.category==Windows and 'property.name.Element Context'==Instance"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementsByHub":{"pagination":{"pageSize":5,"cursor":"YWRjdXJzfk5VTEx-QlE9PX41"},"results":[{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2M","name":"32.10-sparing tbv installaties_1400x600"},{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2Q","name":"32.10-sparing tbv installaties_1100x650"},{"id":"YWVjZX5F ...etc
+```
+
+```
+query GetElementsByHub($hubId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { # ElementsByHub Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByHub($hubId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByHub(hubId: $hubId, filter: $filter, pagination: $pagination) { pagination { pageSize cursor } results { id name } } }
+```
+
+```
+{"hubId":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42","filter":{"query":"property.name.category==Windows and 'property.name.Element Context'==Instance"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementsByHub":{"pagination":{"pageSize":5,"cursor":"YWRjdXJzfk5VTEx-QlE9PX41"},"results":[{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2M","name":"32.10-sparing tbv installaties_1400x600"},{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2Q","name":"32.10-sparing tbv installaties_1100x650"},{"id":"YWVjZX5F ...etc
+```
+
+
+---
+
+## elementsbyproject.md
+
+# elementsByProject
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetElementsByProject($projectId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { # ElementsByProject Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByProject($projectId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { pagination { pageSize cursor } results { id name } } }
+```
+
+```
+{"projectId":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","filter":{"query":"property.name.category==Windows and 'property.name.Element Context'==Instance"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementsByProject":{"pagination":{"pageSize":5,"cursor":"YWRjdXJzfk5VTEx-QlE9PX41"},"results":[{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2M","name":"32.10-sparing tbv installaties_1400x600"},{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2Q","name":"32.10-sparing tbv installaties_1100x650"},{"id":"YWVj ...etc
+```
+
+```
+query GetElementsByProject($projectId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { # ElementsByProject Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByProject($projectId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { pagination { pageSize cursor } results { id name } } }
+```
+
+```
+{"projectId":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","filter":{"query":"property.name.category==Windows and 'property.name.Element Context'==Instance"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementsByProject":{"pagination":{"pageSize":5,"cursor":"YWRjdXJzfk5VTEx-QlE9PX41"},"results":[{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2M","name":"32.10-sparing tbv installaties_1400x600"},{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2Q","name":"32.10-sparing tbv installaties_1100x650"},{"id":"YWVj ...etc
+```
+
+
+---
+
+## elementsbyfolder.md
+
+# elementsByFolder
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetElementsByFolder($projectId: ID!, $folderId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByFolder(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # ElementsByFolder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByFolder($folderId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByFolder(folderId: $folderId, filter: $filter, pagination: $pagination) { pagination { pageSize cursor } results { id name } } }
+```
+
+```
+{"folderId":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE","filter":{"query":"property.name.category==Windows and 'property.name.Element Context'==Instance"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementsByFolder":{"pagination":{"pageSize":5,"cursor":"YWRjdXJzfk5VTEx-QlE9PX41"},"results":[{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2M","name":"32.10-sparing tbv installaties_1400x600"},{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2Q","name":"32.10-sparing tbv installaties_1100x650"},{"id":"YWVjZ ...etc
+```
+
+```
+query GetElementsByFolder($projectId: ID!, $folderId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByFolder(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # ElementsByFolder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByFolder($folderId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByFolder(folderId: $folderId, filter: $filter, pagination: $pagination) { pagination { pageSize cursor } results { id name } } }
+```
+
+```
+{"folderId":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE","filter":{"query":"property.name.category==Windows and 'property.name.Element Context'==Instance"},"pagination":{"limit":5}}
+```
+
+```
+{"data":{"elementsByFolder":{"pagination":{"pageSize":5,"cursor":"YWRjdXJzfk5VTEx-QlE9PX41"},"results":[{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2M","name":"32.10-sparing tbv installaties_1400x600"},{"id":"YWVjZX5FMnRqOFJFOXRsSlRQNU9WVzBiaDZ4X0wyQ35QQllLNWlOb1NsQ283QVpEOVdUM0V3XzEyM2ViN2Q","name":"32.10-sparing tbv installaties_1100x650"},{"id":"YWVjZ ...etc
+```
+
+
+---
+
+## elementsbyelementgroup.md
+
+# elementsByElementGroup
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementsByElementGroup($elementGroupId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByElementGroup(elementGroupId: $elementGroupId, filter: $filter, pagination: $pagination) { # ElementsByElementGroup Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByElementGroup($elementGroupId: ID!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByElementGroup(elementGroupId: $elementGroupId, filter: $filter, pagination: $pagination) { # ElementsByElementGroup Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## elementsbyelementgroupatversion.md
+
+# elementsByElementGroupAtVersion
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetElementsByElementGroupAtVersion($elementGroupId: ID!, $versionNumber: Int!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByElementGroupAtVersion(elementGroupId: $elementGroupId, versionNumber: $versionNumber, filter: $filter, pagination: $pagination) { # ElementsByElementGroupAtVersion Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","versionNumber":"&lt;SOME-INT-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetElementsByElementGroupAtVersion($elementGroupId: ID!, $versionNumber: Int!, $filter: ElementFilterInput, $pagination: PaginationInput) { elementsByElementGroupAtVersion(elementGroupId: $elementGroupId, versionNumber: $versionNumber, filter: $filter, pagination: $pagination) { # ElementsByElementGroupAtVersion Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","versionNumber":"&lt;SOME-INT-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## hub.md
+
+# hub
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetHub($hubId: ID!) { hub(hubId: $hubId) { # Hub Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetHub($hubId: ID!) { hub(hubId: $hubId) { id name projects { results { id name } } } }
+```
+
+```
+{"hubId":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42"}
+```
+
+```
+{"data":{"hub":{"id":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42","name":"Revit Nexus","projects":{"results":[{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","name":"AEC Design AIM STG"},{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjgxY2U0YjkyLWIxNTYtNDE5ZS04MjM1LTNiNzY5M2FhMGY0MA","name":"Extractor-A ...etc
+```
+
+```
+query GetHub($hubId: ID!) { hub(hubId: $hubId) { # Hub Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetHub($hubId: ID!) { hub(hubId: $hubId) { id name projects { results { id name } } } }
+```
+
+```
+{"hubId":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42"}
+```
+
+```
+{"data":{"hub":{"id":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42","name":"Revit Nexus","projects":{"results":[{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","name":"AEC Design AIM STG"},{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjgxY2U0YjkyLWIxNTYtNDE5ZS04MjM1LTNiNzY5M2FhMGY0MA","name":"Extractor-A ...etc
+```
+
+
+---
+
+## hubs.md
+
+# hubs
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetHubs($filter: HubFilterInput, $pagination: PaginationInput) { hubs(filter: $filter, pagination: $pagination) { # Hubs Fields } }
+```
+
+```
+{"filter":"&lt;SOME-HUBFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetHubs { hubs { results { id name } } }
+```
+
+```
+{}
+```
+
+```
+{"data":{"hubs":{"results":[{"name":"Revit Nexus","id":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42"},{"name":"Golden Gate","id":"b.5c07c84c-bbd9-476e-8712-547f74c5b76b"}]}}}
+```
+
+```
+query GetHubs($filter: HubFilterInput, $pagination: PaginationInput) { hubs(filter: $filter, pagination: $pagination) { # Hubs Fields } }
+```
+
+```
+{"filter":"&lt;SOME-HUBFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetHubs { hubs { results { id name } } }
+```
+
+```
+{}
+```
+
+```
+{"data":{"hubs":{"results":[{"name":"Revit Nexus","id":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42"},{"name":"Golden Gate","id":"b.5c07c84c-bbd9-476e-8712-547f74c5b76b"}]}}}
+```
+
+
+---
+
+## project.md
+
+# project
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetProject($projectId: ID!) { project(projectId: $projectId) { # Project Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetProject($projectId: ID!) { project (projectId: $projectId) { id name folders { results { id name objectCount } } } }
+```
+
+```
+{"projectId":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ"}
+```
+
+```
+{"data":{"project":{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","name":"AEC Design AIM STG  ","folders":{"results":[{"id":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE","name":"Project Fi ...etc
+```
+
+```
+query GetProject($projectId: ID!) { project(projectId: $projectId) { # Project Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetProject($projectId: ID!) { project (projectId: $projectId) { id name folders { results { id name objectCount } } } }
+```
+
+```
+{"projectId":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ"}
+```
+
+```
+{"data":{"project":{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","name":"AEC Design AIM STG  ","folders":{"results":[{"id":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE","name":"Project Fi ...etc
+```
+
+
+---
+
+## projects.md
+
+# projects
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetProjects($hubId: ID!, $filter: ProjectFilterInput, $pagination: PaginationInput) { projects(hubId: $hubId, filter: $filter, pagination: $pagination) { # Projects Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-PROJECTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetProjects($hubId: String!) { projects(hubId: $hubId) { results { name id hub { id name } } } }
+```
+
+```
+{"hubId":"b.5c07c84c-bbd9-476e-8712-547f74c5b76b"}
+```
+
+```
+{"data":{"projects":{"results":[{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","name":"AEC Design AIM STG","hub":{"id":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42","name":"Revit Nexus"}},{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjgxY2U0YjkyLWIxNTYtNDE5ZS04MjM1LTNiNzY5M2FhMGY0MA","name":"Extractor- ...etc
+```
+
+```
+query GetProjects($hubId: ID!, $filter: ProjectFilterInput, $pagination: PaginationInput) { projects(hubId: $hubId, filter: $filter, pagination: $pagination) { # Projects Fields } }
+```
+
+```
+{"hubId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-PROJECTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetProjects($hubId: String!) { projects(hubId: $hubId) { results { name id hub { id name } } } }
+```
+
+```
+{"hubId":"b.5c07c84c-bbd9-476e-8712-547f74c5b76b"}
+```
+
+```
+{"data":{"projects":{"results":[{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NQ","name":"AEC Design AIM STG","hub":{"id":"b.e4fbd315-2dc5-4026-8ca3-80f09d24ff42","name":"Revit Nexus"}},{"id":"YWltcHJvan5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjgxY2U0YjkyLWIxNTYtNDE5ZS04MjM1LTNiNzY5M2FhMGY0MA","name":"Extractor- ...etc
+```
+
+
+---
+
+## folder.md
+
+# folder
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetFolder($projectId: ID!, $folderId: ID!) { folder(projectId: $projectId, folderId: $folderId) { # Folder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetFolder($folderId: ID!) { folder (folderId: $folderId) { id name objectCount folders { results { id name objectCount } } } }
+```
+
+```
+{"folderId":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE"}
+```
+
+```
+{"data":{"folder":{"id":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE","name":"Project Files","objectCount":8,"folders":{"results":[{"id":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aX ...etc
+```
+
+```
+query GetFolder($projectId: ID!, $folderId: ID!) { folder(projectId: $projectId, folderId: $folderId) { # Folder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;"}
+```
+
+```
+query GetFolder($folderId: ID!) { folder (folderId: $folderId) { id name objectCount folders { results { id name objectCount } } } }
+```
+
+```
+{"folderId":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE"}
+```
+
+```
+{"data":{"folder":{"id":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aXBzdGc6ZnMuZm9sZGVyOmNvLlhvSG9RY3pHUm9LczVZRm4yUDNpWlE","name":"Project Files","objectCount":8,"folders":{"results":[{"id":"Zm9sZH5iLmU0ZmJkMzE1LTJkYzUtNDAyNi04Y2EzLTgwZjA5ZDI0ZmY0Mn5iLjdhZGJmOWZkLWRlYmItNDI5Yy1iZmU1LTMyYTNjMjJjMDY5NX51cm46YWRzay53aX ...etc
+```
+
+
+---
+
+## foldersbyfolder.md
+
+# foldersByFolder
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetFoldersByFolder($projectId: ID!, $folderId: ID!, $filter: FolderFilterInput, $pagination: PaginationInput) { foldersByFolder(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # FoldersByFolder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-FOLDERFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetFoldersByFolder($projectId: ID!, $folderId: ID!, $filter: FolderFilterInput, $pagination: PaginationInput) { foldersByFolder(projectId: $projectId, folderId: $folderId, filter: $filter, pagination: $pagination) { # FoldersByFolder Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","folderId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-FOLDERFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## foldersbyproject.md
+
+# foldersByProject
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+## Code Examples
+
+```
+query GetFoldersByProject($projectId: ID!, $filter: FolderFilterInput, $pagination: PaginationInput) { foldersByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { # FoldersByProject Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-FOLDERFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetFoldersByProject($projectId: ID!, $filter: FolderFilterInput, $pagination: PaginationInput) { foldersByProject(projectId: $projectId, filter: $filter, pagination: $pagination) { # FoldersByProject Fields } }
+```
+
+```
+{"projectId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-FOLDERFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## distinctpropertyvaluesinelementgroupbyid.md
+
+# distinctPropertyValuesInElementGroupById
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetDistinctPropertyValuesInElementGroupById($elementGroupId: ID!, $propertyDefinitionId: ID!, $filter: ElementFilterInput) { distinctPropertyValuesInElementGroupById(elementGroupId: $elementGroupId, propertyDefinitionId: $propertyDefinitionId, filter: $filter) { # DistinctPropertyValuesInElementGroupById Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","propertyDefinitionId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query ($elementGroupId: ID!, $propertyDefinitionId: ID!, $filter: ElementFilterInput) { distinctPropertyValuesInElementGroupById(elementGroupId: $elementGroupId, propertyDefinitionId: $propertyDefinitionId, filter: $filter) { definition { id } values(limit: 200) { value, count } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","propertyDefinitionId":"autodesk.revit.parameter:parameter.elemFamilyName-2.0.0","filter":{"query":"property.name.category==Doors"}}
+```
+
+```
+{"data":{"distinctPropertyValuesInElementGroupById":{"definition":{"id":"autodesk.revit.parameter:parameter.elemFamilyName-2.0.0"},"values":[{"value":"Door-Passage-Single-Flush","count":105},{"value":"Door-Passage-Single-Two_Lite","count":13},{"value":"Door-Opening","count":9},{"value":"Door-Curtain-Wall-Double-Storefront","count":6},{"value":"36\" x 84\"","count":5}]}}}
+```
+
+```
+query GetDistinctPropertyValuesInElementGroupById($elementGroupId: ID!, $propertyDefinitionId: ID!, $filter: ElementFilterInput) { distinctPropertyValuesInElementGroupById(elementGroupId: $elementGroupId, propertyDefinitionId: $propertyDefinitionId, filter: $filter) { # DistinctPropertyValuesInElementGroupById Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","propertyDefinitionId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query ($elementGroupId: ID!, $propertyDefinitionId: ID!, $filter: ElementFilterInput) { distinctPropertyValuesInElementGroupById(elementGroupId: $elementGroupId, propertyDefinitionId: $propertyDefinitionId, filter: $filter) { definition { id } values(limit: 200) { value, count } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","propertyDefinitionId":"autodesk.revit.parameter:parameter.elemFamilyName-2.0.0","filter":{"query":"property.name.category==Doors"}}
+```
+
+```
+{"data":{"distinctPropertyValuesInElementGroupById":{"definition":{"id":"autodesk.revit.parameter:parameter.elemFamilyName-2.0.0"},"values":[{"value":"Door-Passage-Single-Flush","count":105},{"value":"Door-Passage-Single-Two_Lite","count":13},{"value":"Door-Opening","count":9},{"value":"Door-Curtain-Wall-Double-Storefront","count":6},{"value":"36\" x 84\"","count":5}]}}}
+```
+
+
+---
+
+## distinctpropertyvaluesinelementgroupbyname.md
+
+# distinctPropertyValuesInElementGroupByName
+
+## Arguments
+
+## Possible Returns
+
+## Examples
+
+### Example 1
+
+## Code Examples
+
+```
+query GetDistinctPropertyValuesInElementGroupByName($elementGroupId: ID!, $name: String!, $filter: ElementFilterInput, $pagination: PaginationInput) { distinctPropertyValuesInElementGroupByName(elementGroupId: $elementGroupId, name: $name, filter: $filter, pagination: $pagination) { # DistinctPropertyValuesInElementGroupByName Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","name":"&lt;SOME-STRING-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query ($elementGroupId: ID!, $name: String!, $filter: ElementFilterInput, $pagination: PaginationInput) { distinctPropertyValuesInElementGroupByName(elementGroupId: $elementGroupId, name: $name, filter: $filter, pagination: $pagination) { results { definition { id } values(limit: 5) { value count } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Structural Material","filter":{"query":"property.name.category==Walls"}}
+```
+
+```
+{ "data": { "distinctPropertyValuesInElementGroupByName": { "results": [ { "definition": { "id": "autodesk.revit.parameter:structuralMaterialParam-5.0.0" }, "values": [ { "value": "Concrete Masonry Units", "count": 4 }, { "value": "Metal Stud Layer", "count": 21 }, { "value": "Metal Furring", "count": 5 }, { "value": "Concrete, Cast-in-Place gray", "count": 5 } ] } ] } }, }
+```
+
+```
+query GetDistinctPropertyValuesInElementGroupByName($elementGroupId: ID!, $name: String!, $filter: ElementFilterInput, $pagination: PaginationInput) { distinctPropertyValuesInElementGroupByName(elementGroupId: $elementGroupId, name: $name, filter: $filter, pagination: $pagination) { # DistinctPropertyValuesInElementGroupByName Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","name":"&lt;SOME-STRING-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-ELEMENTFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query ($elementGroupId: ID!, $name: String!, $filter: ElementFilterInput, $pagination: PaginationInput) { distinctPropertyValuesInElementGroupByName(elementGroupId: $elementGroupId, name: $name, filter: $filter, pagination: $pagination) { results { definition { id } values(limit: 5) { value count } } } }
+```
+
+```
+{"elementGroupId":"YWVjZH5JR0JWdWROM2QxdW1kTkJZRnR2ZlpBX0wyQ35GZGhKOWZxZFJSR2QxTXAwNU1RWkVR","name":"Structural Material","filter":{"query":"property.name.category==Walls"}}
+```
+
+```
+{ "data": { "distinctPropertyValuesInElementGroupByName": { "results": [ { "definition": { "id": "autodesk.revit.parameter:structuralMaterialParam-5.0.0" }, "values": [ { "value": "Concrete Masonry Units", "count": 4 }, { "value": "Metal Stud Layer", "count": 21 }, { "value": "Metal Furring", "count": 5 }, { "value": "Concrete, Cast-in-Place gray", "count": 5 } ] } ] } }, }
+```
+
+
+---
+
+## propertydefinitionsbyelementgroup.md
+
+# propertyDefinitionsByElementGroup
+
+## Arguments
+
+## Possible Returns
+
+## Code Examples
+
+```
+query GetPropertyDefinitionsByElementGroup($elementGroupId: ID!, $filter: PropertyDefinitionFilterInput, $pagination: PaginationInput) { propertyDefinitionsByElementGroup(elementGroupId: $elementGroupId, filter: $filter, pagination: $pagination) { # PropertyDefinitionsByElementGroup Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-PROPERTYDEFINITIONFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+```
+query GetPropertyDefinitionsByElementGroup($elementGroupId: ID!, $filter: PropertyDefinitionFilterInput, $pagination: PaginationInput) { propertyDefinitionsByElementGroup(elementGroupId: $elementGroupId, filter: $filter, pagination: $pagination) { # PropertyDefinitionsByElementGroup Fields } }
+```
+
+```
+{"elementGroupId":"&lt;SOME-ID-TYPE-SCALAR-VALUE&gt;","filter":"&lt;SOME-PROPERTYDEFINITIONFILTER-INPUT-TYPE-VALUE&gt;","pagination":"&lt;SOME-PAGINATION-INPUT-TYPE-VALUE&gt;"}
+```
+
+
+---
+
+## elementgroup.md
+
+# ElementGroup
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupalternativeidentifiers.md
+
+# ElementGroupAlternativeIdentifiers
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupextractionstatus.md
+
+# ElementGroupExtractionStatus
+
+## Fields
+
+## Where Used
+
+
+---
+
+## element.md
+
+# Element
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementalternativeidentifiers.md
+
+# ElementAlternativeIdentifiers
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elements.md
+
+# Elements
+
+## Fields
+
+## Where Used
+
+
+---
+
+## extractionstatus.md
+
+# ExtractionStatus
+
+## Valid Values
+
+## Where Used
+
+> Extraction status.
+
+
+---
+
+## elementgroups.md
+
+# ElementGroups
+
+## Fields
+
+## Where Used
+
+
+---
+
+## comparators.md
+
+# Comparators
+
+## Valid Values
+
+## Where Used
+
+> Valid comparators when filtering by a value
+
+
+---
+
+## folder.md
+
+# Folder
+
+## Fields
+
+## Where Used
+
+
+---
+
+## folders.md
+
+# Folders
+
+## Fields
+
+## Where Used
+
+
+---
+
+## hub.md
+
+# Hub
+
+## Fields
+
+## Where Used
+
+
+---
+
+## hubs.md
+
+# Hubs
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupversionhistory.md
+
+# ElementGroupVersionHistory
+
+## Fields
+
+## Where Used
+
+
+---
+
+## pagination.md
+
+# Pagination
+
+## Fields
+
+## Where Used
+
+
+---
+
+## project.md
+
+# Project
+
+## Fields
+
+## Where Used
+
+
+---
+
+## projectalternativeidentifiers.md
+
+# ProjectAlternativeIdentifiers
+
+## Fields
+
+## Where Used
+
+
+---
+
+## projects.md
+
+# Projects
+
+## Fields
+
+## Where Used
+
+
+---
+
+## property.md
+
+# Property
+
+## Fields
+
+
+---
+
+## properties.md
+
+# Properties
+
+## Fields
+
+## Where Used
+
+
+---
+
+## propertydefinition.md
+
+# PropertyDefinition
+
+## Fields
+
+## Where Used
+
+
+---
+
+## propertydefinitioncollection.md
+
+# PropertyDefinitionCollection
+
+## Fields
+
+## Where Used
+
+
+---
+
+## propertydefinitions.md
+
+# PropertyDefinitions
+
+## Fields
+
+## Where Used
+
+
+---
+
+## referenceproperties.md
+
+# ReferenceProperties
+
+## Fields
+
+## Where Used
+
+
+---
+
+## referenceproperty.md
+
+# ReferenceProperty
+
+## Fields
+
+
+---
+
+## user.md
+
+# User
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupversion.md
+
+# ElementGroupVersion
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupversions.md
+
+# ElementGroupVersions
+
+## Fields
+
+## Where Used
+
+
+---
+
+## distinctpropertyvalue.md
+
+# DistinctPropertyValue
+
+## Fields
+
+## Where Used
+
+
+---
+
+## distinctpropertyvaluescollection.md
+
+# DistinctPropertyValuesCollection
+
+## Fields
+
+## Where Used
+
+
+---
+
+## distinctpropertyvalues.md
+
+# DistinctPropertyValues
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementfilterinput.md
+
+# ElementFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementpropertyfilterinput.md
+
+# ElementPropertyFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementreferencefilterinput.md
+
+# ElementReferenceFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## referencepropertyfilterinput.md
+
+# ReferencePropertyFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupfilterinput.md
+
+# ElementGroupFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## folderfilterinput.md
+
+# FolderFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## hubfilterinput.md
+
+# HubFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## paginationinput.md
+
+# PaginationInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## projectfilterinput.md
+
+# ProjectFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## propertydefinitionfilterinput.md
+
+# PropertyDefinitionFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## propertyfilterinput.md
+
+# PropertyFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## elementgroupversionfilterinput.md
+
+# ElementGroupVersionFilterInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## valuecomparatorinput.md
+
+# ValueComparatorInput
+
+## Fields
+
+## Where Used
+
+
+---
+
+## scalars.md
+
+# Scalars
+
+## Boolean
+
+## DateTime
+
+## ID
+
+## Int
+
+## String
+
+## PropertyData
+
+> The Boolean scalar type represents true or false.
+
+
+---
+
+## changelog_v1.md
+
+# Changelog
+
+## Release Date: 2025-03-31
+
+### Added
+
+## Release Date: 2025-02-19
+
+### Added
+
+## Release Date: 2025-01-10
+
+### Deprecation
+
+## Release Date: 2024-11-29
+
+### Added
+
+## Release Date: 2024-10-04
+
+### Added
+
+## Release Date: 2024-09-13
+
+### Added
+
+## Release Date: 2024-09-05
+
+### Added
+
+## Release Date: 2024-06-24
+
+> New queries:
+
+
+---
+
