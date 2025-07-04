@@ -84,9 +84,48 @@ Step 2 - Create the Viewer https://public-blogs.s3.us-west-2.amazonaws.com/sview
 Step 3 - `Uh-oh`, how to fix the upload bug with vibe-coding https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4
 <a href="https://public-blogs.s3.us-west-2.amazonaws.com/sviewer-3-vibe-fix.mp4"><img width="1368" alt="Image" src="https://github.com/user-attachments/assets/7aab77ea-3be5-43c6-bdc7-6f0c0bfa2b6e" /></a>
 
-```
-Explanation of these three to come
-```
+
+___
+## ▶️ Step 5: Use Vibe Code with AEC Data Model and `llms-graphql.txt`
+
+With the new [`https://aps.autodesk.com/llms-graphql.txt`](https://aps.autodesk.com/llms-graphql.txt) file, you can empower Cursor AI to generate custom GraphQL queries for the AEC Data Model. You can also test them directly within VS Code using the **REST Client** extension—no need to leave the Cursor environment to make REST calls!
+
+> The `llms-graphql.txt` file was auto-generated from [this script](https://github.com/autodesk-platform-services/llmstxt/blob/generated-llms/generate-llms-graphql.py).
+
+### 🎥 Watch the 1-Minute Demo
+
+Click the image below to watch a short walkthrough:
+
+[![Watch Video](https://github.com/user-attachments/assets/00358558-6c2d-406e-827c-64d6360c2b66)](https://public-blogs.s3.us-west-2.amazonaws.com/llms-graphql.mp4)
+
+---
+
+### 🛠️ How to Get Started
+
+1. **Add the `llms-graphql.txt` file to Cursor Docs**  
+   > URL: [`https://aps.autodesk.com/llms-graphql.txt`](https://aps.autodesk.com/llms-graphql.txt)
+
+2. **Create a `.http` example file**  
+   Use Cursor or manually set it up to start experimenting.
+
+3. **Get a 3LO Access Token**  
+   You can use [https://ssa-manager.autodesk.io](https://ssa-manager.autodesk.io) to grab one.
+
+4. **Ask Cursor AI**  
+   > _"Create a `.http` file. Using GraphQL, create some requests for ‘get Hubs’ and ‘get Projects’, using a 3LO access token variable."_
+
+---
+
+### ✅ Final Result
+
+You'll get a `.http` file with step-by-step, executable scripts—just like Postman.
+
+- **Push-button GET requests**  
+- **Chained responses** that populate variables automatically  
+- **No need to manually write GraphQL**—Cursor AI handles it for you
+
+Think of this as **Postman + AI**, purpose-built for the AEC Data Model.
+
 
 
 ---
