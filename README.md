@@ -92,6 +92,18 @@ With the new [`https://aps.autodesk.com/llms-graphql.txt`](https://aps.autodesk.
 
 > The `llms-graphql.txt` file was auto-generated from [this script](https://github.com/autodesk-platform-services/llmstxt/blob/generated-llms/generate-llms-graphql.py).
 
+```mermaid
+classDiagram
+    %% Relationships (top-down flow)
+    Hub "1" --> "many" Project
+    Project "1" --> "many" Folder
+    Folder "1" --> "many" ElementGroup
+    ElementGroup "1" --> "many" Element
+    Element --> Property
+    PropertyDefinitionCollection --> PropertyDefinition
+    PropertyDefinition --> Property
+```
+
 ### 🎥 Watch the 1-Minute Demo
 
 Click the image below to watch a short walkthrough:
