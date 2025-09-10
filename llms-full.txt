@@ -4260,3 +4260,112 @@ def index():
 if __name__ == '__main__':
     app.run(debug=False, port=8080) 
 ```
+
+---
+
+
+# Sample Models for testing Viewer SDK in .http format
+- A .http file (see REST Client VS Code plugin)
+- 10 Sample models for Viewer SDK to display.
+- Two endpoints:  a GET 'access token' endpoint and a GET 'list of sample models' endpoint.
+
+```
+### Get Token
+# @name getToken
+GET https://aps-codepen.autodesk.io/api/token
+Content-Type: application/json
+
+# Response will store access_token in variable: {{getToken.response.body.access_token}}
+
+# Expected JSON response:
+# {
+#   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+#   "token_type": "Bearer",
+#   "expires_in": 3600
+# }
+
+###
+
+### List Models
+GET https://aps-codepen.autodesk.io/api/models
+Content-Type: application/json
+
+# @name listModels
+# No authentication required
+
+# Expected JSON response:
+# [
+#   {
+#     "name": "House Model",
+#     "urn": "dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YnVja2V0L2ZpbGUuZHdm"
+#   },
+#   {
+#     "name": "Office Building",
+#     "urn": "dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YnVja2V0L2ZpbGUucnZ0"
+#   }
+# ]
+
+###
+```
+
+## Important: when using the Viewer SDK, use the latest values:
+```
+env: 'AutodeskProduction'
+api: 'streamingV2'
+```
+Do not use `api: 'derivativeV2'` - it is deprecated and old.
+
+## When retrieving a models's URN from ACC via items (or BIM360 Hubs), use their tip version, like this .mjs sample code:
+
+```
+const getFolderContents = async (projectId, folderUrn, token) => {
+  const encodedFolderUrn = encodeURIComponent(folderUrn);
+  const response = await fetch(
+    `${APS_BASE_URL}/data/v1/projects/${projectId}/folders/${encodedFolderUrn}/contents`,
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    }
+  );
+  
+  return await response.json();
+};
+
+const getTipVersion = async (projectId, itemId, token) => {
+  const response = await fetch(
+    `${APS_BASE_URL}/data/v1/projects/${projectId}/items/${itemId}/tip`,
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    }
+  );
+  
+  return await response.json();
+};
+
+export const getModels = async (url) => {
+  const tokenResponse = await getToken();
+  const token = tokenResponse.access_token;
+  
+  const { projectId, folderUrn } = parseAccUrl(url);
+  
+  const folderContents = await getFolderContents(projectId, folderUrn, token);
+  
+  const models = [];
+  
+  for (const item of folderContents.data || []) {
+    if (item.type === 'items') {
+      const tipData = await getTipVersion(projectId, item.id, token);
+      
+      models.push({
+        name: item.attributes.displayName,
+        urn: tipData?.data?.relationships?.derivatives?.data?.id
+      });
+    }
+  }
+  
+  return models;
+};
+```
