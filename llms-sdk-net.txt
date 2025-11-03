@@ -1,0 +1,1056 @@
+# APS SDK for .NET 9 - Beginner's Guide
+
+## Overview
+
+The Autodesk Platform Services (APS) SDK for .NET enables developers to build applications that interact with APS cloud services. This guide focuses on the most common beginner workflows: authentication using Secure Service Accounts (SSA) and basic Data Management operations.
+
+**Requirements:**
+- .NET 9.0 or later
+- APS application credentials (Client ID and Client Secret)
+- A secure service account with private key
+
+**NuGet Packages:**
+- `Wallabyway.APS.SecureServiceAccount` - For SSA authentication
+- `Autodesk.DataManagement` - For accessing BIM 360/ACC data
+- `Autodesk.ModelDerivative` - For file translation/conversion and property extraction
+- `Autodesk.Oss` - For file upload/download operations
+- `Autodesk.Construction.Issues` - For ACC Issues management
+- `Autodesk.Construction.AccountAdmin` - For ACC account/project administration
+- `Autodesk.Webhooks` - For webhook event subscriptions
+- `Autodesk.SDKManager` - Core SDK manager
+
+---
+
+## Authentication with Secure Service Accounts (SSA)
+
+Secure Service Accounts provide a secure way to authenticate server-to-server applications without exposing client secrets in every request. The workflow involves creating a JWT (JSON Web Token) signed with a private key and exchanging it for a 3-legged OAuth token.
+
+### Key Concepts
+
+1. **Service Account**: A server-side identity that represents your application
+2. **Private Key**: RSA key used to sign JWTs (keep this secure!)
+3. **JWT**: A signed token that proves your application's identity
+4. **3-Legged Token**: The OAuth access token you exchange the JWT for
+
+### Basic Authentication Flow
+
+```csharp
+using Autodesk.Authentication.SecureServiceAccount;
+using Autodesk.Authentication.SecureServiceAccount.Model;
+using Autodesk.SDKManager;
+
+// Initialize the SSA client
+var sdkManager = SdkManagerBuilder.Create().Build();
+var ssaClient = new SecureServiceAccountClient(sdkManager);
+
+// Load your private key from file
+string privateKeyPath = "path/to/your/private-key.pem";
+string privateKey = File.ReadAllText(privateKeyPath);
+
+// Define scopes
+var scopes = new List<Scopes> { 
+    Scopes.DataRead,
+    Scopes.DataWrite 
+};
+
+// Step 1: Generate JWT assertion
+string jwtAssertion = ssaClient.GenerateJwtAssertion(
+    clientId: "your-client-id",
+    serviceAccountId: "your-service-account-id",
+    privateKey: privateKey,
+    keyId: "your-key-id",  // Key ID from your service account key pair
+    scopes: scopes,
+    lifetimeSeconds: 300  // Max 5 minutes
+);
+
+// Step 2: Exchange JWT for 3-legged token
+var threeLeggedToken = await ssaClient.ExchangeJwtAssertionAsync(
+    clientId: "your-client-id",
+    clientSecret: "your-client-secret",
+    assertion: jwtAssertion,
+    grantType: GrantType.JwtBearer,
+    scopes: scopes
+);
+
+string accessToken = threeLeggedToken.AccessToken;
+```
+
+### Scopes You'll Need
+
+For Data Management operations:
+- `Scopes.DataRead` - Read hubs, projects, folders, and files
+- `Scopes.DataWrite` - Create and modify data
+- `Scopes.DataCreate` - Create new items
+
+---
+
+## Data Management Basics
+
+The Data Management API allows you to navigate BIM 360/ACC project structures and access files.
+
+### Hierarchy
+
+```
+Hubs (Account/Team)
+  └── Projects
+      └── Top Folders (Project Files, Plans, etc.)
+          └── Folders
+              └── Items (Files)
+                  └── Versions
+```
+
+### 1. Initialize Data Management Client
+
+```csharp
+using Autodesk.DataManagement;
+
+// Use the access token from SSA
+var authProvider = new StaticAuthenticationProvider(accessToken);
+var dmClient = new DataManagementClient(authenticationProvider: authProvider);
+```
+
+### 2. Get Hubs
+
+Hubs represent your BIM 360/ACC accounts or teams.
+
+```csharp
+// Get all hubs the service account has access to
+Hubs hubs = await dmClient.GetHubsAsync();
+
+foreach (var hub in hubs.Data)
+{
+    Console.WriteLine($"Hub: {hub.Attributes.Name}");
+    Console.WriteLine($"ID: {hub.Id}");
+    Console.WriteLine($"Type: {hub.Attributes.Extension.Type}");
+}
+```
+
+### 3. Get Projects
+
+Projects are containers for files within a hub.
+
+```csharp
+// Get projects for a specific hub
+string hubId = "b.xxxx-xxxx-xxxx"; // From previous step
+
+Projects projects = await dmClient.GetHubProjectsAsync(
+    hubId: hubId
+);
+
+foreach (var project in projects.Data)
+{
+    Console.WriteLine($"Project: {project.Attributes.Name}");
+    Console.WriteLine($"ID: {project.Id}");
+}
+```
+
+### 4. Get Top Folders
+
+Top folders are the root-level folders in a project (e.g., "Project Files", "Plans").
+
+```csharp
+string projectId = "b.xxxx-xxxx-xxxx"; // From previous step
+
+TopFolders topFolders = await dmClient.GetProjectTopFoldersAsync(
+    hubId: hubId,
+    projectId: projectId
+);
+
+foreach (var folder in topFolders.Data)
+{
+    Console.WriteLine($"Folder: {folder.Attributes.Name}");
+    Console.WriteLine($"ID: {folder.Id}");
+}
+```
+
+### 5. Get Folder Contents
+
+Navigate into folders to see files and subfolders.
+
+```csharp
+string folderId = "urn:adsk.wipprod:fs.folder:co.xxxxx"; // From previous step
+
+FolderContents contents = await dmClient.GetFolderContentsAsync(
+    projectId: projectId,
+    folderId: folderId
+);
+
+foreach (var item in contents.Data)
+{
+    if (item is FolderData subfolder)
+    {
+        Console.WriteLine($"📁 Folder: {subfolder.Attributes.Name}");
+    }
+    else if (item is ItemData file)
+    {
+        Console.WriteLine($"📄 File: {file.Attributes.DisplayName}");
+        Console.WriteLine($"   Item ID: {file.Id}");
+    }
+}
+```
+
+### 6. Get Item Details
+
+Items represent files in your project.
+
+```csharp
+string itemId = "urn:adsk.wipprod:dm.lineage:xxxxx"; // From folder contents
+
+Item item = await dmClient.GetItemAsync(
+    projectId: projectId,
+    itemId: itemId
+);
+
+Console.WriteLine($"File: {item.Data.Attributes.DisplayName}");
+Console.WriteLine($"Created: {item.Data.Attributes.CreateTime}");
+Console.WriteLine($"Modified: {item.Data.Attributes.LastModifiedTime}");
+```
+
+### 7. Get File Versions
+
+Each file can have multiple versions.
+
+```csharp
+Versions versions = await dmClient.GetItemVersionsAsync(
+    projectId: projectId,
+    itemId: itemId
+);
+
+foreach (var version in versions.Data)
+{
+    Console.WriteLine($"Version: {version.Attributes.VersionNumber}");
+    Console.WriteLine($"Name: {version.Attributes.Name}");
+    Console.WriteLine($"Created: {version.Attributes.CreateTime}");
+    Console.WriteLine($"Size: {version.Attributes.StorageSize} bytes");
+}
+```
+
+### 8. Upload a File to ACC Folder
+
+Upload files directly to ACC project folders (no separate OSS buckets needed for ACC):
+
+```csharp
+using Autodesk.Oss;
+
+// Step 1: Create storage location in ACC
+StoragePayload storagePayload = new StoragePayload()
+{
+    Jsonapi = new JsonApiVersion() { VarVersion = JsonApiVersionValue._10 },
+    Data = new StoragePayloadData()
+    {
+        Type = TypeObject.Objects,
+        Attributes = new StoragePayloadDataAttributes() { Name = "MyModel.rvt" },
+        Relationships = new StoragePayloadDataRelationships()
+        {
+            Target = new StoragePayloadDataRelationshipsTarget()
+            {
+                Data = new StoragePayloadDataRelationshipsTargetData()
+                {
+                    Type = TypeFolderItemsForStorage.Folders,
+                    Id = folderId
+                }
+            }
+        }
+    }
+};
+
+Storage storage = await dmClient.CreateStorageAsync(projectId, storagePayload);
+string storageId = storage.Data.Id;
+
+// Step 2: Upload file bytes to ACC-managed storage
+OssClient ossClient = new OssClient(authenticationProvider: authProvider);
+string bucketKey = storageId.Replace("urn:adsk.objects:os.object:", "").Split('/')[0];
+string objectKey = storageId.Replace("urn:adsk.objects:os.object:", "").Substring(bucketKey.Length + 1);
+await ossClient.UploadObjectAsync(bucketKey, objectKey, localFilePath);
+
+// Step 3: Create item in ACC
+ItemPayload itemPayload = new ItemPayload()
+{
+    Data = new ItemPayloadData()
+    {
+        Type = TypeItem.Items,
+        Attributes = new ItemPayloadDataAttributes()
+        {
+            DisplayName = "MyModel.rvt",
+            Extension = new ItemPayloadDataAttributesExtension()
+            {
+                Type = "items:autodesk.bim360:File",
+                VarVersion = "1.0"
+            }
+        },
+        Relationships = new ItemPayloadDataRelationships()
+        {
+            Tip = new ItemPayloadDataRelationshipsTip()
+            {
+                Data = new ItemPayloadDataRelationshipsTipData()
+                {
+                    Type = TypeVersion.Versions,
+                    Id = "1"
+                }
+            },
+            Parent = new ItemPayloadDataRelationshipsParent()
+            {
+                Data = new ItemPayloadDataRelationshipsParentData()
+                {
+                    Type = TypeFolder.Folders,
+                    Id = folderId
+                }
+            }
+        }
+    },
+    Included = new List<ItemPayloadIncluded>()
+    {
+        new ItemPayloadIncluded()
+        {
+            Type = TypeVersion.Versions,
+            Id = "1",
+            Attributes = new ItemPayloadIncludedAttributes()
+            {
+                Name = "MyModel.rvt",
+                Extension = new ItemPayloadIncludedAttributesExtension()
+                {
+                    Type = "versions:autodesk.bim360:File",
+                    VarVersion = "1.0"
+                }
+            },
+            Relationships = new ItemPayloadIncludedRelationships()
+            {
+                Storage = new ItemPayloadIncludedRelationshipsStorage()
+                {
+                    Data = new ItemPayloadIncludedRelationshipsStorageData()
+                    {
+                        Type = TypeObject.Objects,
+                        Id = storageId
+                    }
+                }
+            }
+        }
+    }
+};
+
+CreatedItem item = await dmClient.CreateItemAsync(projectId, itemPayload);
+```
+
+---
+
+## Model Derivative API
+
+Convert/translate files (RVT, DWG, NWD, IFC, etc.) to viewable formats or extract data.
+
+### Prerequisites
+
+```csharp
+using Autodesk.ModelDerivative;
+using Autodesk.ModelDerivative.Model;
+
+StaticAuthenticationProvider authProvider = new StaticAuthenticationProvider(accessToken);
+ModelDerivativeClient mdClient = new ModelDerivativeClient(authenticationProvider: authProvider);
+```
+
+### Translate a File (ACC/Data Management)
+
+Translate a file from ACC to SVF2 format for viewing:
+
+```csharp
+// Use the version URN from an ACC file
+string sourceUrn = "urn:adsk.wipprod:fs.file:vf.xxxxx";
+
+// Base64 encode the URN (Model Derivative requirement)
+string base64Urn = Convert.ToBase64String(
+    System.Text.Encoding.UTF8.GetBytes(sourceUrn)
+).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+// Create translation job
+JobPayload jobPayload = new JobPayload()
+{
+    Input = new JobPayloadInput()
+    {
+        Urn = base64Urn
+    },
+    Output = new JobPayloadOutput()
+    {
+        Formats = new List<JobPayloadFormat>()
+        {
+            new JobPayloadFormat()
+            {
+                Type = Type.Svf2,  // SVF2 for web viewing
+                Views = new List<View>() { View._3d, View._2d }
+            }
+        }
+    }
+};
+
+Job job = await mdClient.StartJobAsync(jobPayload, region: Region.US);
+Console.WriteLine($"Translation started: {job.Result}");
+Console.WriteLine($"URN: {job.Urn}");
+```
+
+### Translate a File (OSS Bucket)
+
+For files in OSS buckets:
+
+```csharp
+// OSS URN format: urn:adsk.objects:os.object:bucket-key/object-key
+string ossUrn = $"urn:adsk.objects:os.object:{bucketKey}/{objectKey}";
+
+string base64Urn = Convert.ToBase64String(
+    System.Text.Encoding.UTF8.GetBytes(ossUrn)
+).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+// Same translation job as above
+Job job = await mdClient.StartJobAsync(jobPayload, region: Region.US);
+```
+
+### Check Translation Status
+
+```csharp
+// Get the manifest (translation status)
+Manifest manifest = await mdClient.GetManifestAsync(base64Urn);
+
+Console.WriteLine($"Status: {manifest.Status}");  // "inprogress", "success", "failed", etc.
+Console.WriteLine($"Progress: {manifest.Progress}");
+
+// Check derivatives
+if (manifest.Derivatives != null)
+{
+    foreach (var derivative in manifest.Derivatives)
+    {
+        Console.WriteLine($"Output Type: {derivative.OutputType}");
+        Console.WriteLine($"Status: {derivative.Status}");
+        
+        if (derivative.Children != null)
+        {
+            foreach (var child in derivative.Children)
+            {
+                Console.WriteLine($"  - {child.Role}: {child.Status}");
+            }
+        }
+    }
+}
+```
+
+### Extract Metadata
+
+Get metadata tree (object hierarchy) from translated file:
+
+```csharp
+// Get metadata (model GUID)
+ModelViews metadata = await mdClient.GetModelViewsAsync(base64Urn);
+
+foreach (var view in metadata.Data.Metadata)
+{
+    Console.WriteLine($"GUID: {view.Guid}");
+    Console.WriteLine($"Name: {view.Name}");
+    Console.WriteLine($"Role: {view.Role}");
+    
+    // Get object tree for this view
+    ObjectTree tree = await mdClient.GetObjectTreeAsync(
+        urn: base64Urn,
+        modelGuid: view.Guid
+    );
+    
+    Console.WriteLine($"Objects in model: {tree.Data.Objects.Count}");
+}
+```
+
+### Get Object Properties
+
+Extract properties (BIM data) from objects:
+
+```csharp
+// Get all properties for a model view
+PropertiesPayload request = new PropertiesPayload()
+{
+    Fields = new List<string>() { "objectid", "name", "externalId" }
+};
+
+Properties properties = await mdClient.GetAllPropertiesAsync(
+    urn: base64Urn,
+    modelGuid: modelGuid,
+    propertiesPayload: request
+);
+
+foreach (var obj in properties.Data.Collection)
+{
+    Console.WriteLine($"Object ID: {obj.Objectid}");
+    Console.WriteLine($"Name: {obj.Name}");
+    
+    // Access specific properties
+    if (obj.Properties != null)
+    {
+        foreach (var propGroup in obj.Properties)
+        {
+            Console.WriteLine($"  Category: {propGroup.Key}");
+            foreach (var prop in propGroup.Value)
+            {
+                Console.WriteLine($"    {prop.Key}: {prop.Value}");
+            }
+        }
+    }
+}
+```
+
+### Query Specific Properties
+
+Get properties for specific objects only:
+
+```csharp
+SpecificPropertiesPayload query = new SpecificPropertiesPayload()
+{
+    Fields = new List<string>() { "name", "externalId" },
+    Query = new SpecificPropertiesPayloadQuery()
+    {
+        // SQL-like query
+        Var__where = "properties.Dimensions.Height > 10",
+        Var__select = new List<string>() { "properties.Dimensions.Height", "properties.Dimensions.Width" }
+    }
+};
+
+SpecificProperties result = await mdClient.FetchSpecificPropertiesAsync(
+    urn: base64Urn,
+    modelGuid: modelGuid,
+    specificPropertiesPayload: query
+);
+```
+
+### Download Derivative Files
+
+Download translated output files (e.g., STL, OBJ, IFC):
+
+```csharp
+// Translate to STL format
+JobPayload stlJob = new JobPayload()
+{
+    Input = new JobPayloadInput() { Urn = base64Urn },
+    Output = new JobPayloadOutput()
+    {
+        Formats = new List<JobPayloadFormat>()
+        {
+            new JobPayloadFormat()
+            {
+                Type = Type.Stl,  // or Type.Obj, Type.Ifc, etc.
+                Advanced = new JobPayloadFormatAdvanced()
+                {
+                    ExportFileStructure = ExportFileStructure.Single
+                }
+            }
+        }
+    }
+};
+
+Job stlTranslation = await mdClient.StartJobAsync(stlJob);
+
+// Wait for translation to complete, then download
+// Get derivative URN from manifest
+Manifest manifest = await mdClient.GetManifestAsync(base64Urn);
+string derivativeUrn = manifest.Derivatives[0].Children[0].Urn;
+
+// Download the derivative
+System.IO.Stream derivativeStream = await mdClient.GetDerivativeUrlAsync(
+    urn: base64Urn,
+    derivativeUrn: derivativeUrn
+);
+
+// Save to file
+using (FileStream fileStream = File.Create("output.stl"))
+{
+    derivativeStream.CopyTo(fileStream);
+}
+```
+
+### Supported Output Formats
+
+**For Viewing:**
+- `Type.Svf2` - SVF2 (recommended for web viewing with Viewer)
+- `Type.Svf` - SVF (legacy viewer format)
+
+**For Download/Extraction:**
+- `Type.Stl` - STL (3D printing)
+- `Type.Step` - STEP (CAD exchange)
+- `Type.Iges` - IGES (CAD exchange)
+- `Type.Obj` - OBJ (3D modeling)
+- `Type.Ifc` - IFC (BIM exchange)
+- `Type.Dwg` - DWG (2D/3D drawings)
+- `Type.Fbx` - FBX (animation/rendering)
+- `Type.Thumbnail` - Thumbnail images
+
+### Revit-Specific Views
+
+Extract specific Revit views:
+
+```csharp
+// Get all views from Revit file
+ModelViews views = await mdClient.GetModelViewsAsync(base64Urn);
+
+// Translate specific views only
+JobPayload viewJob = new JobPayload()
+{
+    Input = new JobPayloadInput() { Urn = base64Urn },
+    Output = new JobPayloadOutput()
+    {
+        Formats = new List<JobPayloadFormat>()
+        {
+            new JobPayloadFormat()
+            {
+                Type = Type.Svf2,
+                Views = new List<View>() { View._3d },  // Only 3D views
+                Advanced = new JobPayloadFormatAdvanced()
+                {
+                    // Revit-specific options
+                    MaterialMode = MaterialMode.Auto,
+                    GenerateMasterViews = true
+                }
+            }
+        }
+    }
+};
+```
+
+### Complete Workflow: ACC File → Viewable
+
+```csharp
+// 1. Get file version from ACC
+Versions versions = await dmClient.GetItemVersionsAsync(projectId, itemId);
+string versionUrn = versions.Data[0].Id;
+
+// 2. Encode URN
+string base64Urn = Convert.ToBase64String(
+    System.Text.Encoding.UTF8.GetBytes(versionUrn)
+).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+// 3. Start translation
+JobPayload job = new JobPayload()
+{
+    Input = new JobPayloadInput() { Urn = base64Urn },
+    Output = new JobPayloadOutput()
+    {
+        Formats = new List<JobPayloadFormat>()
+        {
+            new JobPayloadFormat()
+            {
+                Type = Type.Svf2,
+                Views = new List<View>() { View._3d, View._2d }
+            }
+        }
+    }
+};
+
+await mdClient.StartJobAsync(job, region: Region.US);
+
+// 4. Poll for completion
+Manifest manifest;
+do
+{
+    await Task.Delay(5000);  // Wait 5 seconds
+    manifest = await mdClient.GetManifestAsync(base64Urn);
+} while (manifest.Status == Status.Inprogress);
+
+// 5. Check result
+if (manifest.Status == Status.Success)
+{
+    Console.WriteLine("✓ Translation complete! Ready for viewing.");
+    Console.WriteLine($"Viewer URN: {base64Urn}");
+}
+else
+{
+    Console.WriteLine($"✗ Translation failed: {manifest.Status}");
+}
+```
+
+### Error Handling
+
+```csharp
+try
+{
+    Job job = await mdClient.StartJobAsync(jobPayload);
+}
+catch (ModelDerivativeApiException ex)
+{
+    Console.WriteLine($"Translation error: {ex.Message}");
+    
+    // Check for specific errors
+    if (ex.HttpResponseMessage?.StatusCode == System.Net.HttpStatusCode.Conflict)
+    {
+        Console.WriteLine("Translation already in progress or completed");
+    }
+}
+```
+
+---
+
+## ACC Issues API
+
+Manage construction issues in ACC projects.
+
+### Get Issues
+
+```csharp
+using Autodesk.Construction.Issues;
+
+StaticAuthenticationProvider authProvider = new StaticAuthenticationProvider(accessToken);
+IssuesClient issuesClient = new IssuesClient(authenticationProvider: authProvider);
+
+// Get all issues
+IssuesPage issues = await issuesClient.GetIssuesAsync(projectId: projectId);
+
+foreach (var issue in issues.Results)
+{
+    Console.WriteLine($"Issue: {issue.Title}");
+    Console.WriteLine($"Status: {issue.Status}");
+    Console.WriteLine($"Assigned To: {issue.AssignedTo}");
+    Console.WriteLine($"Due Date: {issue.DueDate}");
+}
+```
+
+### Create an Issue
+
+```csharp
+IssuePayload newIssue = new IssuePayload()
+{
+    Title = "Foundation inspection needed",
+    Description = "Check concrete curing progress",
+    Status = Status.Open,`
+    AssignedTo = "user-id",
+    AssignedToType = AssignedToType.User,
+    IssueSubtypeId = "subtype-id",
+    DueDate = "2025-12-15"
+};
+
+Issue createdIssue = await issuesClient.CreateIssueAsync(projectId, newIssue);
+```
+
+### Get Issue Details
+
+```csharp
+Issue issueDetail = await issuesClient.GetIssueDetailsAsync(
+    projectId: projectId,
+    issueId: issueId
+);
+```
+
+### Add Comment to Issue
+
+```csharp
+CommentsPayload comment = new CommentsPayload()
+{
+    Body = "Inspection completed. Foundation looks good."
+};
+
+CreatedComment createdComment = await issuesClient.CreateCommentsAsync(
+    projectId: projectId,
+    issueId: issueId,
+    commentsPayload: comment
+);
+```
+
+---
+
+## Webhooks API
+
+Subscribe to events and get notified when data changes in your projects.
+
+### Create a Webhook
+
+```csharp
+using Autodesk.Webhooks;
+using Autodesk.Webhooks.Model;
+
+StaticAuthenticationProvider authProvider = new StaticAuthenticationProvider(accessToken);
+WebhooksClient webhooksClient = new WebhooksClient(authenticationProvider: authProvider);
+
+HookPayload hookPayload = new HookPayload()
+{
+    CallbackUrl = "https://your-server.com/webhook/callback",
+    Scope = new { folder = folderId },
+    HookExpiry = "2026-12-31T23:59:59Z"
+};
+
+// Subscribe to file version added events
+await webhooksClient.CreateSystemEventHookAsync(
+    system: Systems.Data,
+    _event: Events.DmVersionAdded,
+    hookPayload: hookPayload,
+    region: Region.US
+);
+```
+
+### Available Webhook Events
+
+**Data Management Events:**
+- `Events.DmVersionAdded` - New file version uploaded
+- `Events.DmVersionModified` - File version modified
+- `Events.DmVersionDeleted` - File version deleted
+- `Events.DmVersionMoved` - File moved to different folder
+- `Events.DmVersionCopied` - File copied
+- `Events.DmFolderAdded` - New folder created
+- `Events.DmFolderModified` - Folder renamed/modified
+- `Events.DmFolderDeleted` - Folder deleted
+- `Events.DmFolderMoved` - Folder moved
+- `Events.DmLineageReserved` - File checked out
+- `Events.DmLineageUnreserved` - File checked in
+
+**ACC Issues Events (NEW!):**
+- `Events.IssueCreated10` - New issue created
+- `Events.IssueUpdated10` - Issue updated (status, assignee, etc.)
+- `Events.IssueDeleted10` - Issue deleted
+- `Events.IssueRestored10` - Deleted issue restored
+- `Events.IssueUnlinked10` - Issue unlinked from location
+
+**Model Coordination Events:**
+- `Events.ModelSync` - Model sync completed
+- `Events.ModelPublish` - Model published
+- `Events.ExtractionFinished` - Model extraction finished
+- `Events.ExtractionUpdated` - Model extraction updated
+
+**Cost Management Events:**
+- `Events.BudgetCreated10` - Budget created
+- `Events.BudgetUpdated10` - Budget updated
+- `Events.ContractCreated10` - Contract created
+- `Events.PcoCreated10` - Potential Change Order created
+- `Events.RfqCreated10` - Request for Quote created
+
+**Project Events:**
+- `Events.ProjectInitialized10` - New project initialized
+
+### List All Webhooks
+
+```csharp
+Hooks hooks = await webhooksClient.GetHooksAsync(region: Region.US);
+foreach (var hook in hooks.Data)
+{
+    Console.WriteLine($"Hook: {hook.HookId}");
+    Console.WriteLine($"Event: {hook.Event}");
+    Console.WriteLine($"Callback: {hook.CallbackUrl}");
+}
+```
+
+### Delete a Webhook
+
+```csharp
+await webhooksClient.DeleteSystemEventHookAsync(
+    system: Systems.Data,
+    _event: Events.DmVersionAdded,
+    hookId: hookId
+);
+```
+
+---
+
+## ACC Account Admin API
+
+Manage ACC accounts, projects, users, and companies.
+
+### Create a Project
+
+```csharp
+using Autodesk.Construction.AccountAdmin;
+using Autodesk.Construction.AccountAdmin.Model;
+
+StaticAuthenticationProvider authProvider = new StaticAuthenticationProvider(accessToken);
+AdminClient adminClient = new AdminClient(authenticationProvider: authProvider);
+
+ProjectPayload projectPayload = new ProjectPayload()
+{
+    Name = "New Hospital Project",
+    Type = "Hospital",
+    Classification = Classification.Production,
+    City = "San Francisco",
+    Country = "United States",
+    Timezone = Timezone.AmericaLosAngeles,
+    Platform = Platform.Acc
+};
+
+Project project = await adminClient.CreateProjectAsync(accountId, projectPayload);
+Console.WriteLine($"Project created: {project.Id}");
+```
+
+### Get Projects
+
+```csharp
+ProjectsPage projects = await adminClient.GetProjectsAsync(
+    accountId: accountId,
+    region: Region.US
+);
+
+foreach (var proj in projects.Results)
+{
+    Console.WriteLine($"Project: {proj.Name}");
+    Console.WriteLine($"ID: {proj.Id}");
+    Console.WriteLine($"Status: {proj.Status}");
+}
+```
+
+### Get Project Users
+
+```csharp
+List<User> users = await adminClient.GetProjectUsersAsync(
+    projectId: projectId,
+    accountId: accountId
+);
+
+foreach (var user in users)
+{
+    Console.WriteLine($"User: {user.Name}");
+    Console.WriteLine($"Email: {user.Email}");
+    Console.WriteLine($"Role: {user.Role}");
+}
+```
+
+### **Special Note: Simulating "New Project Created" Webhook**
+
+⚠️ **Important Webhook Pattern:** APS doesn't have a direct "project.created" webhook event, but you can **simulate** it by monitoring `Events.DmFolderAdded` on a **Top Folder's parent**.
+
+**How it works:**
+- When a new ACC project is created, ACC automatically creates top-level folders ("Project Files", "Plans", etc.)
+- These folders are created at the **root level** (their parent is the top folder itself)
+- By creating a webhook scoped to the top folder and listening for `DmFolderAdded`, you'll be notified when new root-level folders appear
+- This effectively indicates a **new project initialization**
+
+```csharp
+// Get the top folder (e.g., "Project Files")
+TopFolders topFolders = await dmClient.GetProjectTopFoldersAsync(hubId, projectId);
+string topFolderId = topFolders.Data[0].Id;
+
+// Create webhook on the top folder to catch new folders created at root
+HookPayload hookPayload = new HookPayload()
+{
+    CallbackUrl = "https://your-server.com/new-project-webhook",
+    Scope = new { folder = topFolderId }  // Scope to top folder
+};
+
+await webhooksClient.CreateSystemEventHookAsync(
+    system: Systems.Data,
+    _event: Events.DmFolderAdded,  // New folder added
+    hookPayload: hookPayload,
+    region: Region.US
+);
+
+// When a folder is created at the root level (parent = top folder),
+// your callback will be triggered, indicating project initialization
+```
+
+**Use Cases:**
+- Auto-provision project templates when new projects are created
+- Automatically add service accounts to new projects
+- Trigger project setup workflows
+- Initialize project-specific configurations
+
+---
+
+## Complete Beginner Example
+
+See `sample-beginner/beginner.cs` for a complete working example that demonstrates:
+1. SSA authentication (JWT to 3-legged token)
+2. Getting hubs
+3. Listing projects
+4. Navigating folders
+5. Reading file metadata
+6. Accessing versions
+7. Uploading files to ACC (optional)
+8. Listing ACC issues
+
+---
+
+## Common Patterns
+
+### Error Handling
+
+```csharp
+try
+{
+    var hubs = await dmClient.GetHubsAsync();
+}
+catch (DataManagementApiException ex)
+{
+    Console.WriteLine($"API Error: {ex.Message}");
+    Console.WriteLine($"Status Code: {ex.HttpResponseMessage?.StatusCode}");
+}
+```
+
+### Working with IDs
+
+APS uses URN-style IDs. Key patterns:
+- Hub ID: `b.{guid}`
+- Project ID: `b.{guid}`
+- Folder ID: `urn:adsk.wipprod:fs.folder:co.{id}`
+- Item ID: `urn:adsk.wipprod:dm.lineage:{id}`
+- Version ID: `urn:adsk.wipprod:fs.file:vf.{id}`
+
+### Filtering Results
+
+Many APIs support filtering:
+
+```csharp
+// Filter projects by name
+Projects projects = await dmClient.GetHubProjectsAsync(
+    hubId: hubId,
+    filterName: new List<string> { "My Project" }
+);
+
+// Filter folder contents by type
+FolderContents contents = await dmClient.GetFolderContentsAsync(
+    projectId: projectId,
+    folderId: folderId,
+    filterType: new List<FilterType> { FilterType.Items } // Only files, no folders
+);
+```
+
+---
+
+## Security Best Practices
+
+1. **Never commit private keys** - Add `*.pem` and `*.key` to `.gitignore`
+2. **Store credentials securely** - Use environment variables or secure vaults
+3. **Limit scopes** - Only request the permissions you need
+4. **Rotate keys** - Regularly update service account keys
+5. **Use HTTPS** - Always use secure connections (SDK does this by default)
+
+---
+
+## Troubleshooting
+
+### "Service account not found"
+- Verify your service account ID is correct
+- Ensure the service account is active and not expired
+
+### "Invalid token" or "Invalid JWT"
+- Check that your private key matches the public key registered with the service account
+- Verify the Key ID is correct (must match the key pair you're using)
+- Ensure the JWT isn't expired (max: 5 minutes)
+- Confirm the private key file is in PEM format and properly formatted
+
+### "Insufficient permissions"
+- Ensure your service account has been granted access to the hub/project
+- Check that you're requesting the correct OAuth scopes
+
+### "Hub/Project not found"
+- Verify the IDs are correct (copy from API responses, not the UI)
+- Ensure the service account has been added as a member with appropriate permissions
+
+---
+
+## Next Steps
+
+Once comfortable with these basics:
+1. **Model Derivative API** - Translate and view files in the browser (SVF2 for viewing)
+2. **Advanced Webhooks** - Build event-driven integrations with real-time notifications
+3. **ACC Cost Management** - Budget, contracts, change orders
+4. **Reality Capture** - Process drone/scan data into 3D models
+5. **BIM 360/ACC Document Management** - Advanced file operations and versioning
+
+---
+
+## Resources
+
+- **APS Developer Portal**: https://aps.autodesk.com/
+- **API Documentation**: https://aps.autodesk.com/en/docs/
+- **NuGet Package**: https://www.nuget.org/packages/Wallabyway.APS.SecureServiceAccount/
+- **GitHub Repo**: https://github.com/wallabyway/aps-sdk-net9-ssa
+- **Community Forum**: https://stackoverflow.com (tag: `autodesk-platform-services`)
+
+---
+
+_Last updated: November 2025_
+_SDK Version: .NET 9.0_
+_Package: Wallabyway.APS.SecureServiceAccount v1.0.0-net9.0_
+
