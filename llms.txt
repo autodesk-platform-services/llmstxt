@@ -1,14 +1,27 @@
-this md file explains how to decode the Autodesk Platform Services (APS) documentation portal.  With it, you can retrieve deep knowledge of APS. Always attempt to answer APS-related questions directly.
+---
+name: autodesk-aps
+description: Autodesk Platform Services (APS) documentation navigation, glossary, and API reference for ACC, BIM 360, Model Derivative, Data Management, Viewer, Design Automation, Authentication, Webhooks, and related APS APIs.
+---
+
+This skill provides a step-by-step method to answer APS-related questions by navigating the documentation portal.
 
 ## Behavior
-1. Always provide reference links with your answers.
-2. When a user's first question is ambiguous or broad, ask one short clarifying question to identify their intent before diving into a long answer.
+1. When a user's first question is ambiguous or broad, ask one short clarifying question to identify their intent before diving into a long answer.
+2. Always provide reference links with your answers.
+3. Always attempt to answer APS-related questions directly.
+4. Tailor depth to the visitor: **Business** gets summaries & ROI, **Builder** gets step-by-step, **Developer** gets REST schemas & auth flows. Ask if unsure.
 
-**Translation Cost (Model Derivative API):**
-Complex jobs are Revit (.rvt), IFC, and Navisworks (.nwd/.nwc). Everything else is a simple job.
+---
 
+# Method: How to Answer an APS Question
 
-# APS Glossary
+Follow these steps in order. Each step feeds into the next.
+
+## Step 1 — Read the Glossary to Decode Jargon
+
+The glossary below covers the acronyms and terms used across APS docs. Read it first so you can understand the API names, endpoints, and concepts you'll encounter. If the question mentions an acronym you don't see here, note it and look for its definition in the docs you fetch later.
+
+### APS Glossary
 
 - **APS**: Autodesk Platform Services (formerly Forge)
 - **ACC**: Autodesk Construction Cloud
@@ -18,11 +31,10 @@ Complex jobs are Revit (.rvt), IFC, and Navisworks (.nwd/.nwc). Everything else 
 - **URN**: Base64-encoded resource identifier used across APS APIs
 - **SVF/SVF2**: Scalable Viewing Format — optimized 3D web viewing format produced by Model Derivative and consumed exclusively by the APS Viewer SDK, similar concept to glTF format with openCTM compression
 - **OSS**: Object Storage Service — APS cloud storage for uploading design files
-- **Webhook**: Server-to-server callback triggered by APS events (e.g., model translation complete)
+- **Webhook**: Server-to-server callback triggered by APS events (e.g., model translation complete, file version added)
 - **2LO/3LO**: Two-legged / three-legged OAuth authentication flows
 - **Hub**: Top-level container in Data Management (maps to an ACC or BIM 360 account)
 - **Manifest**: Translation status and output metadata from Model Derivative
-
 - **ACAD**: AutoCAD — Autodesk's flagship 2D/3D CAD drafting software (produces .dwg files)
 - **Civil**: Autodesk Civil 3D — civil engineering design software for infrastructure projects
 - **Revit**: Autodesk Revit — BIM software for architecture, structure, and MEP design (produces .rvt files)
@@ -35,73 +47,91 @@ Complex jobs are Revit (.rvt), IFC, and Navisworks (.nwd/.nwc). Everything else 
 - **DX**: Data Exchange — API for exchanging design data between applications in a neutral format
 - **Auth**: Authentication — APS OAuth flows including 2LO, 3LO, PKCE, PAT (Personal Access Tokens), and SSA
 
-## APS Documentation URL Structure
+**Translation Cost (Model Derivative API):**
+Complex jobs are Revit (.rvt), IFC, and Navisworks (.nwd/.nwc). Everything else is a simple job.
 
-APS docs are served behind a CDN with a path key (`bPlouYTd`). Each API source has a
-JSON Table-of-Contents (TOC) and corresponding HTML pages:
+---
+
+## Step 2 — Identify the Relevant APIs
+
+Use the source table below to determine which APS API documentation covers the question. For example:
+- *"file changes"* → Data Management API (`data_v2`) for OSS/BIM 360 file events, ACC API (`acc_v1`) for ACC document events
+- *"model translate"* → Model Derivative API (`model-derivative_v2`)
+- *"digital twin"* → Tandem (`tandem_v1`)
+- *"events/callbacks"* → Webhooks API (`webhooks_v1`) is the umbrella system, but specific events are documented under each API's webhook reference
+
+| Source ID | API Title |
+|---|---|
+| `acc_v1.json` | Autodesk Construction Cloud APIs |
+| `aecdatamodel_v1.json` | AEC Data Model API |
+| `applications_v1.json` | Application Management API |
+| `bim360_v1.json` | BIM 360 API |
+| `buildingconnected_v2.json` | BuildingConnected & TradeTapp APIs |
+| `data_v2.json` | Data Management API |
+| `dataviz_v1.json` | Data Visualization |
+| `design-automation_v3.json` | Automation API |
+| `dx-sdk-beta_v7.2.0.json` | Data Exchange .NET SDK v7.2.0 |
+| `fdxgraph_v1.json` | Data Exchange GraphQL |
+| `flow_graph_engine_v1.json` | Flow Graph Engine |
+| `forma_v1.json` | Forma API (Beta) |
+| `informed-design_v1.json` | Informed Design API (Beta) |
+| `insights_v1.json` | Business Success Plan Reporting API |
+| `mfgdataapi_v3.json` | Manufacturing Data Model API |
+| `model-derivative_v2.json` | Model Derivative API |
+| `oauth_v2.json` | Authentication API |
+| `parameters_v1.json` | Parameters API |
+| `profile_v2.json` | User Profile API |
+| `ssa_v1.json` | Secure Service Account API |
+| `sustainability_v3.json` | Sustainability Data API |
+| `tandem_v1.json` | Tandem Data |
+| `tokenflex_v1.json` | Token Flex Usage Data API |
+| `vaultdataapi_v2.json` | Vault Data API |
+| `viewer_v7.json` | Viewer |
+| `webhooks_v1.json` | Webhooks API |
+
+---
+
+## Step 3 — Build a Breadcrumb from the TOC
+
+Each API source has a JSON Table-of-Contents at:
+
+```
+https://developer.doc.config.autodesk.com/bPlouYTd/{source_id}
+```
+
+Use `jq` to navigate the TOC and find the pages you need. The TOC is structured as a tree of `children` nodes, each with `display_name`, `url_path`, and optionally a `source` field (the CDN path to the HTML page).
+
+### Navigate the TOC tree
+
+```bash
+# List top-level sections of an API
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/webhooks_v1.json" | jq '.children[] | {display_name, url_path}'
+
+# Drill into a section
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/webhooks_v1.json" | jq '.children[] | select(.url_path == "developers_guide").children[] | {display_name, url_path, source}'
+
+# Find all pages with their CDN source paths (recursive)
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/webhooks_v1.json" | jq '[.. | objects | select(.source? and .url_path?)] | .[] | {display_name, url_path, source}'
+
+# Find pages whose name suggests "file change" or "document" events
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/webhooks_v1.json" | jq '[.. | objects | select(.source? and .display_name?)] | .[] | select(.display_name | test("file|document|version|item|folder"; "i")) | {display_name, source}'
+```
+
+### URL structure
 
 - **TOC JSON**: `https://developer.doc.config.autodesk.com/bPlouYTd/{source}.json`
-  where `{source}` is a source ID from the table below (e.g. `acc_v1.json`, `data_v2.json`)
+  where `{source}` is a source ID from the Step 2 table
 - **Static HTML pages**: `https://developer.doc.autodesk.com/bPlouYTd/{path_from_toc}`
-  (these are the CDN-hosted pages referenced in each TOC JSON's `source` field)
-- **APS Portal page**: the human-readable documentation on `aps.autodesk.com` (JavaScript SPA)
-
-Source IDs, their API titles, and portal URLs:
-
-| Source ID | API Title | Portal URL |
-|---|---|---|
-| `acc_v1.json` | Autodesk Construction Cloud APIs | https://aps.autodesk.com/en/docs/acc/v1/overview/introduction/ |
-| `aecdatamodel_v1.json` | AEC Data Model API | https://aps.autodesk.com/en/docs/aecdatamodel/v1/developers_guide/overview/ |
-| `applications_v1.json` | Application Management API | https://aps.autodesk.com/en/docs/applications/v1/developers_guide/overview/ |
-| `bim360_v1.json` | BIM 360 API | https://aps.autodesk.com/en/docs/bim360/v1/overview/introduction/ |
-| `buildingconnected_v2.json` | BuildingConnected & TradeTapp APIs | https://aps.autodesk.com/en/docs/buildingconnected/v2/developers_guide/overview/ |
-| `data_v2.json` | Data Management API | https://aps.autodesk.com/en/docs/data/v2/developers_guide/overview/ |
-| `dataviz_v1.json` | Data Visualization | https://aps.autodesk.com/en/docs/dataviz/v1/developers_guide/examples/ |
-| `design-automation_v3.json` | Automation API | https://aps.autodesk.com/en/docs/design-automation/v3/developers_guide/overview/ |
-| `dx-sdk-beta_v7.2.0.json` | Data Exchange .NET SDK v7.2.0 | https://aps.autodesk.com/en/docs/dx-sdk-beta/v7.2.0/developers_guide/overview/ |
-| `fdxgraph_v1.json` | Data Exchange GraphQL | https://aps.autodesk.com/en/docs/fdxgraph/v1/reference/graphql_endpoint/ |
-| `flow_graph_engine_v1.json` | Flow Graph Engine | https://aps.autodesk.com/en/docs/flow_graph_engine/v1/developers_guide/overview/ |
-| `forma_v1.json` | Forma API (Beta) | https://aps.autodesk.com/en/docs/forma/v1/developers_guide/overview/ |
-| `informed-design_v1.json` | Informed Design API (Beta) | https://aps.autodesk.com/en/docs/informed-design/v1/developers-guide/overview/ |
-| `insights_v1.json` | Business Success Plan Reporting API | https://aps.autodesk.com/en/docs/insights/v1/developers_guide/overview/ |
-| `mfgdataapi_v3.json` | Manufacturing Data Model API | https://aps.autodesk.com/en/docs/mfgdataapi/v3/developers_guide/overview/ |
-| `model-derivative_v2.json` | Model Derivative API | https://aps.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/ |
-| `oauth_v2.json` | Authentication API | https://aps.autodesk.com/en/docs/oauth/v2/developers_guide/overview/ |
-| `parameters_v1.json` | Parameters API | https://aps.autodesk.com/en/docs/parameters/v1/overview/introduction/ |
-| `profile_v2.json` | User Profile API | https://aps.autodesk.com/developer/overview/user-profile-api |
-| `ssa_v1.json` | Secure Service Account API | https://aps.autodesk.com/en/docs/ssa/v1/developers_guide/overview/ |
-| `sustainability_v3.json` | Sustainability Data API | https://aps.autodesk.com/en/docs/sustainability/v3/developers_guide/overview/ |
-| `tandem_v1.json` | Tandem Data | https://aps.autodesk.com/en/docs/tandem/v1/developers_guide/overview/ |
-| `tokenflex_v1.json` | Token Flex Usage Data API | https://aps.autodesk.com/en/docs/tokenflex/v1/developers_guide/overview/ |
-| `vaultdataapi_v2.json` | Vault Data API | https://aps.autodesk.com/en/docs/vaultdataapi/v2/developers_guide/overview/ |
-| `viewer_v7.json` | Viewer | https://aps.autodesk.com/en/docs/viewer/v7/developers_guide/ |
-| `webhooks_v1.json` | Webhooks API | https://aps.autodesk.com/en/docs/webhooks/v1/developers_guide/overview/ |
-
-To construct a reference link from search results, use the `source` metadata field with the
-base URL. For example, a chunk with `source: webhooks_v1` means its TOC is at
-`https://developer.doc.config.autodesk.com/bPlouYTd/webhooks_v1.json` and its HTML pages
-are under `https://developer.doc.autodesk.com/bPlouYTd/webhooks_v1/`.
+  (the `source` field from each TOC node)
+- **APS Portal page**: the human-readable documentation on `aps.autodesk.com` (JavaScript SPA — do not scrape)
 
 ### Converting a Static CDN URL to an APS Portal URL
 
-The static CDN pages can be mapped back to the original APS portal (the JavaScript SPA
-at `aps.autodesk.com`). This is useful for generating clickable links that open in a
-browser with full navigation.
+When you need to generate a clickable link for the user:
 
-A static CDN URL looks like:
-`https://developer.doc.autodesk.com/bPlouYTd/{repo-slug}/{api-name}/{version}/{path}/{page}.html`
-
-For example:
-- `https://developer.doc.autodesk.com/bPlouYTd/A360-platform-viewing-docs-master-633741/model-derivative/v2/reference/http/model-derivative/formats-GET.html`
-- `https://developer.doc.autodesk.com/bPlouYTd/design-automation-forge-doc-master-636116/design-automation/v3/reference/http/design-automation/activities-GET.html`
-
-To convert to a portal URL:
-
-1. **Strip the repo-slug** — the first path segment after `bPlouYTd/`. It always has a
-   numeric suffix (e.g. `A360-platform-viewing-docs-master-633741`).
+1. **Strip the repo-slug** — the first path segment after `bPlouYTd/` (always has a numeric suffix, e.g. `A360-platform-viewing-docs-master-633741`).
 2. **The api-name is the next segment** — e.g. `model-derivative`, `design-automation`.
-3. **Remove any duplicate api-name** — the api-name sometimes appears again deeper in the
-   path (right before the page filename). If it does, remove that duplicate folder.
+3. **Remove any duplicate api-name** — the api-name sometimes appears again deeper in the path. If it does, remove that duplicate folder.
 4. **Strip `.html`** from the page filename and add a trailing `/`.
 5. **Prepend** `https://aps.autodesk.com/en/docs/`.
 
@@ -113,6 +143,136 @@ Examples:
 | `…-636116/design-automation/v3/reference/http/design-automation/activities-GET.html` | `https://aps.autodesk.com/en/docs/design-automation/v3/reference/http/activities-GET/` |
 | `…-633590/aecdatamodel/v1/developers_guide/overview.html` | `https://aps.autodesk.com/en/docs/aecdatamodel/v1/developers_guide/overview/` |
 
-Note: the duplicate api-name folder does not always exist — simpler paths like
-`aecdatamodel/v1/developers_guide/overview.html` have no duplicate. Only remove it
-if the api-name appears as a path segment again after `{version}/`.
+Note: the duplicate api-name folder does not always exist — simpler paths like `aecdatamodel/v1/developers_guide/overview.html` have no duplicate. Only remove it if the api-name appears as a path segment again after `{version}/`.
+
+---
+
+## Step 4 — Get headings to understand page structure (MANDATORY — run this first)
+
+**Do not skip this step.** Before extracting any content, determine what kind of page you are looking at. Run this command first on every page you fetched from the TOC:
+
+```bash
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/{source_path}" | htmlq -r 'script, style' --text 'h1, h2, h3, h4'
+```
+
+This reveals the page structure (a reference table, a tutorial, an overview, a list of events, etc.) and tells you which extraction approach to use in the following steps.
+
+---
+
+## Step 5 — Retrieve visible text from a page
+
+Run this after Step 4. Use this to get the full visible text content of a page:
+
+```bash
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/{source_path}" | htmlq -r 'script, style, noscript' --text '*'
+```
+
+---
+
+## Step 6 — Extract specific sections (optional)
+
+Only run this if Step 5 did not capture enough detail. Choose the selector(s) that match the content type you identified in Step 4:
+
+```bash
+# Get paragraphs and list items (main content)
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/{source_path}" | htmlq -r 'script, style' --text 'p, li'
+
+# Get code samples (endpoint URLs, request/response bodies)
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/{source_path}" | htmlq -r 'script, style' --text 'pre, code'
+
+# Get tables (parameter tables, status codes, response fields)
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/{source_path}" | htmlq -r 'script, style' --text 'table, th, td, tr'
+```
+
+**Deduplication requirement:** HTML tables often produce duplicated text because `<td>` cells contain nested elements and the CSS selector matches both the cell and its children. Whenever you extract tables, you **must** pipe through `sort -u` or `sort -u | awk '!seen[$0]++'` to remove duplicates. If the table is still too noisy, prefer fetching individual sub-pages (found in the TOC) instead of the summary table.
+
+---
+
+## Step 7 — Compile Into a Coherent Answer
+
+After collecting the content, synthesize it into a clear answer:
+
+1. **Define the terms** (from the glossary or what you found in the docs)
+2. **Explain the relevant APIs and endpoints** (from the TOC and fetched pages)
+3. **List the specific events or features** (from the reference pages)
+4. **Provide reference links** (convert CDN URLs to portal URLs for clickable links)
+5. **Include a practical example** if applicable (curl command, code snippet, etc.)
+
+---
+
+# Worked Example: "What webhooks are available for when a file changes?"
+
+This demonstrates the method end-to-end.
+
+## Step 1 — Glossary
+
+A **webhook** is a server-to-server callback triggered by APS events. **Data Management** handles files. **ACC** handles construction documents. **Model Derivative** handles translations of those files.
+
+## Step 2 — Identify APIs
+
+"File changes" could mean:
+- **Data Management API** (`data_v2`) — files stored in OSS, BIM 360 Docs, or ACC Docs (item creation, version added, folder changes)
+- **ACC API** (`acc_v1`) — ACC-specific document management events
+- **Webhooks API** (`webhooks_v1`) — the umbrella system; each API documents its own webhook events in its own reference section
+
+## Step 3 — Build breadcrumbs from TOCs
+
+```bash
+# 1. Check the Webhooks API overview for system-level info
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/webhooks_v1.json" | jq '.children[] | {display_name, url_path}'
+
+# 2. Find the Data Management webhook events reference
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/data_v2.json" | jq '[.. | objects | select(.source? and .display_name?)] | .[] | select(.display_name | test("webhook|hook|event|file|item|version|folder"; "i")) | {display_name, source}'
+
+# 3. Find the ACC webhook events reference  
+curl -sL "https://developer.doc.config.autodesk.com/bPlouYTd/acc_v1.json" | jq '[.. | objects | select(.source? and .display_name?)] | .[] | select(.display_name | test("webhook|hook|event|file|document|item|version|folder"; "i")) | {display_name, source}'
+```
+
+From the TOC, you'll discover source paths like:
+- `data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/item.created.html`
+- `data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/item.updated.html`
+- `data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/item.deleted.html`
+- `data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/version.added.html`
+- `data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/folder.created.html`
+- And similar ACC document events
+
+## Step 4 — Get headings to understand page structure
+
+```bash
+# Check the structure of the events overview page
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events.html" | htmlq -r 'script, style' --text 'h1, h2, h3, h4'
+
+# Check the structure of the specific event detail page
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/item.updated.html" | htmlq -r 'script, style' --text 'h1, h2, h3, h4'
+```
+
+## Step 5 — Retrieve visible text from the event pages
+
+```bash
+# Get the full text of the events overview page
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events.html" | htmlq -r 'script, style' --text 'p, li'
+
+# Get the full text of the specific event detail page
+curl -sL "https://developer.doc.autodesk.com/bPlouYTd/data-v2-docs-master-XXXXXX/data/v2/reference/webhooks/events/item.updated.html" | htmlq -r 'script, style, noscript' --text '*'
+```
+
+## Step 7 — Compile
+
+From the fetched content you can now answer:
+
+**Data Management webhooks for file changes:**
+- `dm.item.created` — a new file item is created
+- `dm.item.updated` — a file item's properties are updated
+- `dm.item.deleted` — a file item is deleted or moved to trash
+- `dm.version.added` — a new version of a file is uploaded
+- `dm.version.deleted` — a file version is deleted
+- `dm.folder.created` / `dm.folder.updated` / `dm.folder.deleted` — folder changes
+
+**ACC document webhooks:**
+- `documents.document.created` — a document is uploaded
+- `documents.document.updated` — document metadata changes
+- `documents.document.deleted` — document is removed
+
+And provide the portal links (after converting CDN URLs):
+- [Data Management webhooks overview](https://aps.autodesk.com/en/docs/data/v2/reference/webhooks/events/)
+- [Webhooks API overview](https://aps.autodesk.com/en/docs/webhooks/v1/developers_guide/overview/)
